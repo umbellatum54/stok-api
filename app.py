@@ -10,7 +10,7 @@ def get_conn():
         host="stokdb123.postgres.database.azure.com",
         database="postgres",
         user="adminuser2153"
-        password="GnyMrt215354!.!1",
+        password="GASPİK2131.",
         port=5432,
         sslmode="require"
     )
