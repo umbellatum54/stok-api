@@ -4,53 +4,53 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-conn = psycopg2.connect(
-    host="stokdb123.postgres.database.azure.com",
-    database="postgres",
-    user="adminuser2153@stokdb123",
-    password="GnyMrt215354!.!1",
-    port=5432
-)
-
-cur = conn.cursor()
-
-cur.execute("""
-CREATE TABLE IF NOT EXISTS stok (
-    id SERIAL PRIMARY KEY,
-    urun TEXT,
-    adet INTEGER,
-    tarih TEXT
-)
-""")
-conn.commit()
+def get_conn():
+    return psycopg2.connect(
+        host="stokdb123.postgres.database.azure.com",
+        database="postgres",
+        user="adminuser2153@stokdb123",
+        password="GnyMrt215354!.!1",
+        port=5432
+    )
 
 @app.route("/")
 def home():
-    return """
-    <h2>Stok Giriş Paneli</h2>
-    <form action="/ekle" method="post">
-        Ürün Adı: <input type="text" name="urun"><br><br>
-        Adet: <input type="number" name="adet"><br><br>
-        <button type="submit">Kaydet</button>
-    </form>
-    """
+    return "Stok API çalışıyor"
 
 @app.route("/ekle", methods=["POST"])
 def ekle():
+    conn = get_conn()
+    cur = conn.cursor()
+
     urun = request.form.get("urun")
     adet = request.form.get("adet")
     tarih = datetime.now().strftime("%Y-%m-%d %H:%M")
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS stok (
+            id SERIAL PRIMARY KEY,
+            urun TEXT,
+            adet INTEGER,
+            tarih TEXT
+        )
+    """)
 
     cur.execute(
         "INSERT INTO stok (urun, adet, tarih) VALUES (%s, %s, %s)",
         (urun, adet, tarih)
     )
-    conn.commit()
 
-    return f"{urun} eklendi! <br><a href='/'>Geri dön</a>"
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return "Kaydedildi"
 
 @app.route("/stok")
 def stok():
+    conn = get_conn()
+    cur = conn.cursor()
+
     cur.execute("SELECT urun, adet, tarih FROM stok")
     rows = cur.fetchall()
 
@@ -61,5 +61,8 @@ def stok():
             "adet": r[1],
             "tarih": r[2]
         })
+
+    cur.close()
+    conn.close()
 
     return jsonify(data)
