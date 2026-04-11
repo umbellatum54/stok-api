@@ -9,8 +9,8 @@ def get_conn():
     return psycopg2.connect(
         host="stokdb123.postgres.database.azure.com",
         database="postgres",
-        user="adminuser2153"
-        password="GASPİK2131.",
+        user="adminuser2153@stokdb123",
+        password="GASPİK2131.",  # 🔥 BURAYA KENDİ ŞİFREN
         port=5432,
         sslmode="require"
     )
@@ -38,7 +38,6 @@ def ekle():
         adet = int(request.form.get('adet'))
         tarih = datetime.now().strftime("%Y-%m-%d %H:%M")
 
-        # tablo oluştur
         cur.execute("""
             CREATE TABLE IF NOT EXISTS stok (
                 id SERIAL PRIMARY KEY,
@@ -48,7 +47,6 @@ def ekle():
             )
         """)
 
-        # veri ekle
         cur.execute(
             "INSERT INTO stok (urun, adet, tarih) VALUES (%s, %s, %s)",
             (urun, adet, tarih)
