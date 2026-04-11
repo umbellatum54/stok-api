@@ -4,18 +4,16 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-# 🔥 VERİTABANI BAĞLANTI
 def get_conn():
     return psycopg2.connect(
         host="stokdb123.postgres.database.azure.com",
         database="postgres",
         user="adminuser2153@stokdb123",
-        password="GASPİK2131.",  # 🔥 BURAYA KENDİ ŞİFREN
+        password="GASPİK2131.",
         port=5432,
         sslmode="require"
     )
 
-# 🔹 ANA SAYFA (FORM)
 @app.route('/')
 def home():
     return '''
@@ -27,7 +25,6 @@ def home():
     </form>
     '''
 
-# 🔹 VERİ EKLE
 @app.route('/ekle', methods=['POST'])
 def ekle():
     try:
@@ -61,7 +58,6 @@ def ekle():
     except Exception as e:
         return f"HATA: {str(e)}"
 
-# 🔹 STOK LİSTE
 @app.route('/stok')
 def stok():
     try:
@@ -86,5 +82,3 @@ def stok():
 
     except Exception as e:
         return f"HATA: {str(e)}"
-        if __name__ == "__main__":
-    app.run()
