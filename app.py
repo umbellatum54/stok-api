@@ -9,7 +9,7 @@ def get_conn():
     return psycopg2.connect(
         host="stokdb123.postgres.database.azure.com",
         database="postgres",
-        user="adminuser2153@stokdb123",
+        user="adminuser2153"
         password="GnyMrt215354!.!1",
         port=5432,
         sslmode="require"
