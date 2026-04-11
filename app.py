@@ -86,3 +86,5 @@ def stok():
 
     except Exception as e:
         return f"HATA: {str(e)}"
+        if __name__ == "__main__":
+    app.run()
