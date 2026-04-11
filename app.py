@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -22,7 +23,8 @@ def ekle():
 
     stoklar.append({
         "urun": urun,
-        "adet": adet
+        "adet": adet,
+        "tarih": datetime.now().strftime("%Y-%m-%d %H:%M")
     })
 
     return f"{urun} eklendi! <br><a href='/'>Geri dön</a>"
@@ -30,6 +32,3 @@ def ekle():
 @app.route("/stok")
 def stok():
     return jsonify(stoklar)
-
-if __name__ == "__main__":
-    app.run()
