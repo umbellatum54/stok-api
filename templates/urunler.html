@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Ürün Kartları</title>
+
+<style>
+body{margin:0;font-family:Arial;background:#f4f6f9;}
+.sidebar{width:230px;height:100vh;background:#0d1b2a;position:fixed;color:white;padding:20px;}
+.sidebar a{display:block;color:white;text-decoration:none;margin:10px 0;}
+
+.main{margin-left:250px;padding:20px;}
+
+.container{display:flex;gap:20px;}
+
+.box{
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    flex:1;
+    box-shadow:0 2px 5px rgba(0,0,0,0.1);
+}
+
+input{
+    width:100%;
+    padding:10px;
+    margin:10px 0;
+    border-radius:5px;
+    border:1px solid #ddd;
+}
+
+button{
+    padding:10px;
+    background:#2ecc71;
+    color:white;
+    border:none;
+    border-radius:5px;
+    cursor:pointer;
+}
+
+.card{
+    padding:10px;
+    border-bottom:1px solid #eee;
+}
+</style>
+</head>
+
+<body>
+
+<div class="sidebar">
+<h2>Umbellatum</h2>
+
+<a href="/">Dashboard</a>
+
+<b>Online Pazaryeri</b>
+<a>Trendyol</a>
+<a>Hepsiburada</a>
+<a>Pazarama</a>
+<a>N11</a>
+<a>Amazon</a>
+<a>Web Sitem</a>
+
+<hr>
+
+<a href="/stok">Depo - Stok</a>
+<a href="/urunler"><b>Ürün Kartları</b></a>
+
+</div>
+
+<div class="main">
+
+<h2>Ürün Kartı Yönetimi</h2>
+
+<div class="container">
+
+<!-- SOL -->
+<div class="box">
+<h3>Yeni Ürün</h3>
+
+<form method="POST" action="/urun-ekle">
+<input name="urun" placeholder="Ürün adı" required>
+<input name="renk" placeholder="Renk" required>
+<button>Kaydet</button>
+</form>
+
+</div>
+
+<!-- SAĞ -->
+<div class="box">
+<h3>Ürün Listesi</h3>
+
+{% for u in urunler %}
+<div class="card">
+<b>{{u[1]}}</b> - {{u[2]}}
+</div>
+{% endfor %}
+
+</div>
+
+</div>
+
+</div>
+
+</body>
+</html>
