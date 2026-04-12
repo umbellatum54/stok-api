@@ -6,27 +6,85 @@
 
 <style>
 body{margin:0;font-family:Arial;background:#f4f6f9;}
-.sidebar{width:230px;height:100vh;background:#0d1b2a;position:fixed;color:white;padding:20px;}
-.sidebar a{display:block;color:white;text-decoration:none;margin:10px 0;}
-.main{margin-left:250px;padding:20px;}
-.cards{display:flex;gap:20px;margin-top:20px;}
-.card{flex:1;background:white;padding:20px;border-radius:8px;}
-.btn{padding:10px 15px;border:none;border-radius:5px;color:white;cursor:pointer;margin-right:10px;}
-.green{background:#2ecc71;}
+
+/* SOL MENU */
+.sidebar{
+    width:230px;
+    height:100vh;
+    background:#0d1b2a;
+    position:fixed;
+    color:white;
+    padding:20px;
+}
+.sidebar a{
+    display:block;
+    color:white;
+    text-decoration:none;
+    margin:10px 0;
+}
+
+/* MAIN */
+.main{
+    margin-left:250px;
+    padding:20px;
+}
+
+/* BUTTONS */
+.buttons{
+    margin-bottom:20px;
+}
+.btn{
+    padding:12px 18px;
+    border:none;
+    border-radius:6px;
+    color:white;
+    cursor:pointer;
+    margin-right:10px;
+}
+.green{background:#27ae60;}
 .red{background:#e74c3c;}
 .orange{background:#f39c12;}
-table{width:100%;background:white;margin-top:20px;border-collapse:collapse;}
-th,td{padding:10px;border-bottom:1px solid #ddd;}
-.popup{display:none;position:fixed;width:100%;height:100%;top:0;background:rgba(0,0,0,0.5);}
-.popup-content{background:white;width:400px;margin:100px auto;padding:20px;border-radius:8px;}
+
+/* CARDS */
+.cards{
+    display:flex;
+    gap:20px;
+    margin-bottom:20px;
+}
+.card{
+    flex:1;
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    box-shadow:0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* TABLE */
+table{
+    width:100%;
+    background:white;
+    border-collapse:collapse;
+}
+th, td{
+    padding:10px;
+    border-bottom:1px solid #eee;
+}
+
+/* FORM TABLE */
+.form-table select, .form-table input{
+    width:100%;
+    padding:6px;
+}
 </style>
 </head>
 
 <body>
 
+<!-- SOL MENU -->
 <div class="sidebar">
 <h2>Umbellatum</h2>
-<a href="#">Dashboard</a>
+
+<a href="/">Dashboard</a>
 
 <b>Online Pazaryeri</b>
 <a>Trendyol</a>
@@ -37,37 +95,102 @@ th,td{padding:10px;border-bottom:1px solid #ddd;}
 <a>Web Sitem</a>
 
 <hr>
-<a href="/stok">Depo - Stok</a>
-<a>İK</a>
-<a>Nakit</a>
+
+<a href="/stok"><b>Depo - Stok</b></a>
+<a href="/urunler">Ürün Kartları</a>
+<a>İnsan Kaynakları</a>
+<a>Nakit Yönetimi</a>
 <a>Tedarikçiler</a>
 <a>Ayarlar</a>
 </div>
 
+<!-- MAIN -->
 <div class="main">
 
 <h2>Depo - Stok</h2>
 
-<button class="btn green" onclick="ac('urun')">Ürün Kartı</button>
-<button class="btn green" onclick="ac('giris')">Stok Giriş</button>
-<button class="btn red" onclick="ac('cikis')">Stok Çıkış</button>
-
-<div class="cards">
-<div class="card"><h3>Stok Kart</h3><h2>{{ stok_sayisi }}</h2></div>
-<div class="card"><h3>Depo</h3><h2>{{ depo_sayisi }}</h2></div>
-<div class="card"><h3>Bugün</h3><h2>0</h2></div>
+<!-- BUTONLAR -->
+<div class="buttons">
+<a href="/urunler"><button class="btn green">Ürün Kartı</button></a>
+<button class="btn green">Stok Giriş</button>
+<button class="btn red">Stok Çıkış</button>
+<button class="btn orange">Stok Özeti</button>
 </div>
 
+<!-- KARTLAR -->
+<div class="cards">
+<div class="card">
+<h3>Stok Kart Sayısı</h3>
+<p>{{stok_sayisi}}</p>
+</div>
+
+<div class="card">
+<h3>Bugünkü İşlem</h3>
+<p>0</p>
+</div>
+</div>
+
+<!-- 🔥 STOK GİRİŞ -->
+<h3>Üretimden Gelen Ürün Girişi</h3>
+
+<form method="POST" action="/stok-toplu-giris">
+
+<table class="form-table">
+<tr>
+<th>Ürün</th>
+<th>Renk</th>
+<th>Adet</th>
+</tr>
+
+{% for i in range(1,11) %}
+<tr>
+<td>
+<select name="urun{{i}}" onchange="renkDoldur(this, {{i}})">
+<option value="">Seç</option>
+{% for u in urunler %}
+<option value="{{u[1]}}" data-renk="{{u[2]}}">{{u[1]}}</option>
+{% endfor %}
+</select>
+</td>
+
+<td>
+<input name="renk{{i}}" id="renk{{i}}" readonly>
+</td>
+
+<td>
+<input name="adet{{i}}" type="number">
+</td>
+</tr>
+{% endfor %}
+
+</table>
+
+<br>
+<button class="btn green">Toplu Kaydet</button>
+
+</form>
+
+<br><br>
+
+<!-- 🔥 SON İŞLEMLER -->
 <h3>Son İşlemler</h3>
 
 <table>
-<tr><th>Ürün</th><th>Adet</th><th>Tarih</th></tr>
+<tr>
+<th>Ürün</th>
+<th>Renk</th>
+<th>Adet</th>
+<th>Kullanıcı</th>
+<th>Tarih</th>
+</tr>
 
 {% for l in logs %}
 <tr>
-<td>{{ l[1] }}</td>
-<td>{{ l[2] }}</td>
-<td>{{ l[3] }}</td>
+<td>{{l[1]}}</td>
+<td>{{l[2]}}</td>
+<td>{{l[3]}}</td>
+<td>{{l[4]}}</td>
+<td>{{l[5]}}</td>
 </tr>
 {% endfor %}
 
@@ -75,51 +198,12 @@ th,td{padding:10px;border-bottom:1px solid #ddd;}
 
 </div>
 
-<!-- POPUP -->
-<div id="popup" class="popup">
-<div class="popup-content">
-
-<h3 id="title"></h3>
-
-<form id="form" method="POST">
-
-<input name="urun" placeholder="Ürün"><br><br>
-<input name="renk" placeholder="Renk"><br><br>
-<input name="adet" placeholder="Adet"><br><br>
-
-<button type="submit">Kaydet</button>
-<button type="button" onclick="kapat()">Kapat</button>
-
-</form>
-
-</div>
-</div>
-
+<!-- JS -->
 <script>
-
-function ac(tip){
-    document.getElementById("popup").style.display="block";
-
-    if(tip=="urun"){
-        document.getElementById("title").innerText="Ürün Kartı";
-        document.getElementById("form").action="/urun-ekle";
-    }
-
-    if(tip=="giris"){
-        document.getElementById("title").innerText="Stok Giriş";
-        document.getElementById("form").action="/stok-giris";
-    }
-
-    if(tip=="cikis"){
-        document.getElementById("title").innerText="Stok Çıkış";
-        document.getElementById("form").action="/stok-cikis";
-    }
+function renkDoldur(select, i){
+    var renk = select.options[select.selectedIndex].getAttribute("data-renk");
+    document.getElementById("renk"+i).value = renk || "";
 }
-
-function kapat(){
-    document.getElementById("popup").style.display="none";
-}
-
 </script>
 
 </body>
