@@ -128,20 +128,129 @@ def layout(content, title="Dashboard"):
     </html>
     '''
 
-# 🔹 DASHBOARD
 @app.route('/dashboard')
 def dashboard():
-    try:
-        if "user" not in session:
-            return redirect("/")
+    if "user" not in session:
+        return redirect("/")
 
+    try:
         conn = get_conn()
         cur = conn.cursor()
-        cur.execute("SELECT adet FROM stok")
-        rows = cur.fetchall()
-        toplam = sum([r[0] for r in rows]) if rows else 0
 
-        return layout(f"<div class='card'><h3>Toplam Stok</h3><h1>{toplam}</h1></div>")
+        cur.execute("SELECT COUNT(*) FROM stok")
+        stok_sayisi = cur.fetchone()[0]
+
+        html = f'''
+        <style>
+        body {{margin:0;font-family:Arial;background:#f4f6f9;}}
+
+        .topbar {{
+            background:#3c8dbc;
+            color:white;
+            padding:15px;
+            display:flex;
+            justify-content:space-between;
+        }}
+
+        .container {{padding:20px;}}
+
+        .btn {{
+            padding:15px 20px;
+            border-radius:6px;
+            color:white;
+            display:inline-block;
+            margin:5px;
+            text-decoration:none;
+            font-weight:bold;
+        }}
+
+        .green {{background:#00a65a;}}
+        .red {{background:#dd4b39;}}
+        .purple {{background:#605ca8;}}
+        .orange {{background:#f39c12;}}
+
+        .card {{
+            display:inline-block;
+            width:30%;
+            background:white;
+            padding:20px;
+            margin:10px;
+            border-radius:8px;
+            text-align:center;
+            box-shadow:0 2px 10px rgba(0,0,0,0.1);
+        }}
+
+        .section {{
+            background:white;
+            padding:15px;
+            margin-top:20px;
+            border-radius:8px;
+        }}
+
+        table {{
+            width:100%;
+            margin-top:10px;
+        }}
+
+        th, td {{
+            padding:10px;
+            border-bottom:1px solid #eee;
+        }}
+        </style>
+
+        <div class="topbar">
+            <div><b>EBS Depo-Stok Yönetim</b></div>
+            <div>Hoşgeldin admin</div>
+        </div>
+
+        <div class="container">
+
+            <h3>Hızlı İşlemler</h3>
+
+            <a href="/stoklar" class="btn green">Stok Giriş</a>
+            <a href="/stoklar" class="btn red">Stok Çıkış</a>
+            <a href="#" class="btn purple">Transfer</a>
+            <a href="/stoklar" class="btn orange">Stok Listesi</a>
+
+            <div>
+
+                <div class="card">
+                    <h3>STOK SAYISI</h3>
+                    <h1>{stok_sayisi}</h1>
+                </div>
+
+                <div class="card">
+                    <h3>DEPO SAYISI</h3>
+                    <h1>1</h1>
+                </div>
+
+                <div class="card">
+                    <h3>BUGÜNKÜ İŞLEM</h3>
+                    <h1>0</h1>
+                </div>
+
+            </div>
+
+            <div class="section">
+                <h3>Eksik Stoklar</h3>
+                <table>
+                    <tr><th>Ürün</th><th>Adet</th></tr>
+                    <tr><td>Örnek Ürün</td><td>0</td></tr>
+                </table>
+            </div>
+
+            <div class="section">
+                <h3>En Çok Kullanılanlar</h3>
+                <table>
+                    <tr><th>Ürün</th><th>Adet</th></tr>
+                    <tr><td>---</td><td>---</td></tr>
+                </table>
+            </div>
+
+        </div>
+        '''
+
+        return html
 
     except Exception as e:
         return f"HATA: {str(e)}"
