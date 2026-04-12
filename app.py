@@ -1,10 +1,12 @@
 from flask import Flask, request, redirect, session, jsonify
-
 import psycopg2
-from datetime import datetime
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
-app.secret_key = "secret123"  # login için şart
+app.secret_key = "secret123"
+
+# 🔥 session süresi (beni hatırla)
+app.permanent_session_lifetime = timedelta(days=7)
 
 # 🔥 VERİTABANI BAĞLANTI
 def get_conn():
@@ -17,26 +19,118 @@ def get_conn():
         sslmode="require"
     )
 
-# 🔹 LOGIN SAYFASI
+# 🔹 LOGIN SAYFASI (MODERN)
 @app.route('/')
 def login_page():
     return '''
-    <h2>Giriş Yap</h2>
-    <form method="POST" action="/login">
-        Kullanıcı: <input name="username"><br><br>
-        Şifre: <input type="password" name="password"><br><br>
-        <button>Giriş</button>
-    </form>
+    <html>
+    <head>
+        <title>Giriş</title>
+        <style>
+            body {
+                font-family: Arial;
+                background: linear-gradient(135deg, #f0f2f5, #e4efe9);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+            }
+
+            .box {
+                width: 360px;
+                background: white;
+                padding: 30px;
+                border-radius: 15px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+                text-align: center;
+            }
+
+            .logo {
+                font-size: 22px;
+                font-weight: bold;
+                margin-bottom: 10px;
+                color: #333;
+            }
+
+            h2 {
+                margin-bottom: 20px;
+            }
+
+            input[type="text"], input[type="password"] {
+                width: 100%;
+                padding: 12px;
+                margin-top: 8px;
+                margin-bottom: 15px;
+                border-radius: 8px;
+                border: 1px solid #ddd;
+            }
+
+            .remember {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                font-size: 13px;
+                margin-bottom: 15px;
+            }
+
+            button {
+                width: 100%;
+                padding: 12px;
+                background: #7ED957;
+                border: none;
+                border-radius: 8px;
+                font-size: 16px;
+                font-weight: bold;
+                cursor: pointer;
+            }
+
+            button:hover {
+                background: #6fd14b;
+            }
+
+            .forgot {
+                font-size: 12px;
+                color: #666;
+            }
+        </style>
+    </head>
+    <body>
+
+        <form class="box" method="POST" action="/login">
+            <div class="logo">UMbellatum</div>
+            <h2>Tekrar Hoş Geldiniz!</h2>
+
+            <input type="text" name="username" placeholder="E-posta adresi">
+
+            <input type="password" name="password" placeholder="Şifre">
+
+            <div class="remember">
+                <label>
+                    <input type="checkbox" name="remember"> Beni hatırla
+                </label>
+                <div class="forgot">Şifremi Unuttum</div>
+            </div>
+
+            <button>Giriş Yap</button>
+        </form>
+
+    </body>
+    </html>
     '''
 
-# 🔹 LOGIN KONTROL
+# 🔹 LOGIN
 @app.route('/login', methods=['POST'])
 def login():
     username = request.form.get("username")
     password = request.form.get("password")
+    remember = request.form.get("remember")
 
     if username == "admin" and password == "1234":
         session["user"] = username
+
+        if remember:
+            session.permanent = True
+
         return redirect("/panel")
     else:
         return "Hatalı giriş!"
