@@ -187,95 +187,165 @@ def stok():
     conn = get_conn()
     cur = conn.cursor()
 
+    # KART SAYILARI
+    cur.execute("SELECT COUNT(*) FROM urunler")
+    stok_sayisi = cur.fetchone()[0]
+
+    cur.execute("SELECT COUNT(*) FROM depo")
+    depo_sayisi = cur.fetchone()[0]
+
+    today = datetime.now().strftime("%Y-%m-%d")
+    cur.execute("SELECT COUNT(*) FROM hareket WHERE tarih LIKE %s", (today+"%",))
+    islem_sayisi = cur.fetchone()[0]
+
+    # LOG
+    cur.execute("SELECT * FROM hareket ORDER BY id DESC LIMIT 10")
+    logs = cur.fetchall()
+
+    # DROPDOWN
     cur.execute("SELECT DISTINCT ad FROM urunler")
-    urun=[x[0] for x in cur.fetchall()]
+    urunler = [x[0] for x in cur.fetchall()]
 
     cur.execute("SELECT DISTINCT renk FROM urunler")
-    renk=[x[0] for x in cur.fetchall()]
+    renkler = [x[0] for x in cur.fetchall()]
 
-    html=f"""
-    <div class='card'>
-    <button class='green' onclick="openM('urun')">Ürün Kartı</button>
-    <button class='blue' onclick="openM('giris')">Üretim Girişi</button>
-    <button class='red' onclick="openM('cikis')">Stok Çıkış</button>
-    <button class='orange' onclick="openM('ozet')">Stok Özeti</button>
+    cur.close()
+    conn.close()
+
+    html = f"""
+
+    <div style="background:#f4f6f9;padding:20px">
+
+    <!-- HIZLI İŞLEMLER -->
+    <div style="background:white;padding:20px;border-radius:10px;margin-bottom:20px">
+
+    <button class="green" onclick="openM('urun')">📦 Ürün Kartı</button>
+    <button class="green" onclick="openM('giris')">⬇️ Stok Giriş</button>
+    <button class="red" onclick="openM('cikis')">⬆️ Stok Çıkış</button>
+
     </div>
-    
-<!-- ÜRÜN MODAL -->
-<div id='urun' class='modal'>
-  <div class='modal-content'>
 
-  <h2>📦 Ürün Kartı Tanımla</h2>
+    <!-- KARTLAR -->
+    <div style="display:flex;gap:20px;margin-bottom:20px">
 
-  <form method='POST' action='/urun'>
+    <div style="flex:1;background:white;padding:20px;border-radius:10px;display:flex;align-items:center">
+    <div style="background:#00c0ef;width:80px;height:80px;border-radius:10px"></div>
+    <div style="margin-left:20px">
+    <h4>STOK KART SAYISI</h4>
+    <h2>{stok_sayisi}</h2>
+    </div>
+    </div>
 
-  <input name='ad' placeholder='Ürün Adı' required>
-  <input name='renk' placeholder='Renk' required>
-  <input name='marka' placeholder='Marka'>
-  <input name='kod' placeholder='Stok Kodu'>
-  <input name='raf' placeholder='Raf Yeri'>
+    <div style="flex:1;background:white;padding:20px;border-radius:10px;display:flex;align-items:center">
+    <div style="background:#dd4b39;width:80px;height:80px;border-radius:10px"></div>
+    <div style="margin-left:20px">
+    <h4>DEPO SAYISI</h4>
+    <h2>{depo_sayisi}</h2>
+    </div>
+    </div>
 
-  <br><br>
+    <div style="flex:1;background:white;padding:20px;border-radius:10px;display:flex;align-items:center">
+    <div style="background:#00a65a;width:80px;height:80px;border-radius:10px"></div>
+    <div style="margin-left:20px">
+    <h4>BUGÜNKÜ İŞLEM</h4>
+    <h2>{islem_sayisi}</h2>
+    </div>
+    </div>
 
-  <button type='submit' class='green'>Kaydet</button>
+    </div>
 
-  </form>
+    <!-- SON GİRİŞ -->
+    <div style="background:white;padding:20px;border-radius:10px">
 
-  <br>
-  <button onclick="closeM('urun')" class='red'>Kapat</button>
+    <h2>Son Giriş Kaydı</h2>
 
-  </div>
-</div>
-    <!-- ÜRÜN -->
-    <div id='urun' class='modal'><div class='modal-content'>
+    <table style="width:100%;margin-top:20px">
+
+    <tr style="color:#666">
+    <th>Tarih</th>
+    <th>Ürün</th>
+    <th>Renk</th>
+    <th>Adet</th>
+    <th>İşlem</th>
+    <th>Kullanıcı</th>
+    </tr>
+
+    {''.join(f"""
+    <tr>
+    <td>{l[6]}</td>
+    <td>{l[1]}</td>
+    <td>{l[2]}</td>
+    <td>{l[4]}</td>
+    <td>{l[5]}</td>
+    <td>{l[7]}</td>
+    </tr>
+    """ for l in logs)}
+
+    </table>
+
+    </div>
+
+    </div>
+
+    <!-- ÜRÜN MODAL -->
+    <div id='urun' class='modal'>
+    <div class='modal-content'>
+    <h2>📦 Ürün Kartı</h2>
+
     <form method='POST' action='/urun'>
     <input name='ad' placeholder='Ürün'>
     <input name='renk' placeholder='Renk'>
     <input name='marka'>
     <input name='kod'>
     <input name='raf'>
-    <button>Kaydet</button>
+    <button class='green'>Kaydet</button>
     </form>
+
     <button onclick="closeM('urun')">Kapat</button>
-    </div></div>
+    </div>
+    </div>
 
-    <!-- GİRİŞ -->
-    <div id='giris' class='modal'><div class='modal-content'>
+    <!-- GİRİŞ MODAL -->
+    <div id='giris' class='modal'>
+    <div class='modal-content'>
+    <h2>⬇️ Stok Giriş</h2>
+
     <form method='POST' action='/giris_ekle'>
-    <div id='rows'>
-    <div>
-    <select name='urun'>{''.join([f"<option>{x}</option>" for x in urun])}</select>
-    <select name='renk'>{''.join([f"<option>{x}</option>" for x in renk])}</select>
-    <input name='adet'>
-    </div>
-    </div>
-    <button type='button' onclick='addRow()'>+ Satır</button>
-    <button>Kaydet</button>
-    </form>
-    <button onclick="closeM('giris')">Kapat</button>
-    </div></div>
 
-    <!-- ÇIKIŞ -->
-    <div id='cikis' class='modal'><div class='modal-content'>
-    <form method='POST' action='/cikis_ekle'>
-    <select name='urun'>{''.join([f"<option>{x}</option>" for x in urun])}</select>
-    <select name='renk'>{''.join([f"<option>{x}</option>" for x in renk])}</select>
+    <div id="rows">
+    <div>
+    <select name='urun'>{''.join([f"<option>{x}</option>" for x in urunler])}</select>
+    <select name='renk'>{''.join([f"<option>{x}</option>" for x in renkler])}</select>
     <input name='adet'>
-    <button>Kaydet</button>
+    </div>
+    </div>
+
+    <button type='button' onclick='addRow()'>+ Satır</button>
+    <button class='green'>Kaydet</button>
+
     </form>
-    </div></div>
+
+    </div>
+    </div>
+
+    <!-- ÇIKIŞ MODAL -->
+    <div id='cikis' class='modal'>
+    <div class='modal-content'>
+    <h2>⬆️ Stok Çıkış</h2>
+
+    <form method='POST' action='/cikis_ekle'>
+    <select name='urun'>{''.join([f"<option>{x}</option>" for x in urunler])}</select>
+    <select name='renk'>{''.join([f"<option>{x}</option>" for x in renkler])}</select>
+    <input name='adet'>
+    <button class='red'>Kaydet</button>
+    </form>
+
+    </div>
+    </div>
+
     """
 
-    # LOG
-    cur.execute("SELECT * FROM hareket ORDER BY id DESC LIMIT 10")
-    logs=cur.fetchall()
-
-    html+="<div class='card'><table>"
-    for l in logs:
-        html+=f"<tr><td>{l[1]}</td><td>{l[2]}</td><td>{l[4]}</td><td>{l[5]}</td></tr>"
-    html+="</table></div>"
-
-    return layout(html,"Depo - Stok")
+    return layout(html, "Depo - Stok")
 
 # EKLE
 @app.route('/urun', methods=['POST'])
