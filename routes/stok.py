@@ -64,3 +64,16 @@ def urun_ekle():
     conn.close()
 
     return redirect('/stok')
+
+@stok_bp.route('/urunler')
+def urunler_sayfa():
+    conn = get_conn()
+    cur = conn.cursor()
+
+    cur.execute("SELECT * FROM urunler ORDER BY id DESC")
+    urunler = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+    return render_template("urunler.html", urunler=urunler)
