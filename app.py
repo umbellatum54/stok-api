@@ -4,6 +4,7 @@ from datetime import datetime
 
 app = Flask(__name__)
 
+# 🔥 VERİTABANI BAĞLANTI
 def get_conn():
     return psycopg2.connect(
         host="stokdb123.postgres.database.azure.com",
@@ -11,9 +12,11 @@ def get_conn():
         user="adminuser2153@stokdb123",
         password="GASPİK2131.",
         port=5432,
-        sslmode="require"
+        sslmode="require",
+        connect_timeout=10
     )
 
+# 🔹 ANA SAYFA
 @app.route('/')
 def home():
     return '''
@@ -25,6 +28,7 @@ def home():
     </form>
     '''
 
+# 🔹 VERİ EKLE
 @app.route('/ekle', methods=['POST'])
 def ekle():
     try:
@@ -35,6 +39,7 @@ def ekle():
         adet = int(request.form.get('adet'))
         tarih = datetime.now().strftime("%Y-%m-%d %H:%M")
 
+        # TABLO YOKSA OLUŞTUR
         cur.execute("""
             CREATE TABLE IF NOT EXISTS stok (
                 id SERIAL PRIMARY KEY,
@@ -44,6 +49,7 @@ def ekle():
             )
         """)
 
+        # VERİ EKLE
         cur.execute(
             "INSERT INTO stok (urun, adet, tarih) VALUES (%s, %s, %s)",
             (urun, adet, tarih)
@@ -58,6 +64,7 @@ def ekle():
     except Exception as e:
         return f"HATA: {str(e)}"
 
+# 🔹 STOK LİSTE
 @app.route('/stok')
 def stok():
     try:
