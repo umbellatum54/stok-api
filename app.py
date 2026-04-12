@@ -72,6 +72,13 @@ def login():
     <button>Giriş</button>
     </form>
     '''
+    .modal-content input{
+    width:18%;
+    padding:10px;
+    margin:5px;
+    border:1px solid #ccc;
+    border-radius:6px;
+}
 
 @app.route('/giris', methods=['POST'])
 def giris():
@@ -193,7 +200,32 @@ def stok():
     <button class='red' onclick="openM('cikis')">Stok Çıkış</button>
     <button class='orange' onclick="openM('ozet')">Stok Özeti</button>
     </div>
+    
+<!-- ÜRÜN MODAL -->
+<div id='urun' class='modal'>
+  <div class='modal-content'>
 
+  <h2>📦 Ürün Kartı Tanımla</h2>
+
+  <form method='POST' action='/urun'>
+
+  <input name='ad' placeholder='Ürün Adı' required>
+  <input name='renk' placeholder='Renk' required>
+  <input name='marka' placeholder='Marka'>
+  <input name='kod' placeholder='Stok Kodu'>
+  <input name='raf' placeholder='Raf Yeri'>
+
+  <br><br>
+
+  <button type='submit' class='green'>Kaydet</button>
+
+  </form>
+
+  <br>
+  <button onclick="closeM('urun')" class='red'>Kapat</button>
+
+  </div>
+</div>
     <!-- ÜRÜN -->
     <div id='urun' class='modal'><div class='modal-content'>
     <form method='POST' action='/urun'>
