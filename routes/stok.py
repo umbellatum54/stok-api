@@ -4,25 +4,16 @@ from db import get_conn
 
 stok_bp = Blueprint('stok', __name__)
 
-
-# 📊 STOK PANELİ
 @stok_bp.route('/stok')
 def stok():
     conn = get_conn()
     cur = conn.cursor()
 
-    # tablolar yoksa oluştur
     cur.execute("""
         CREATE TABLE IF NOT EXISTS urunler (
             id SERIAL PRIMARY KEY,
-            ad TEXT
-        )
-    """)
-
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS depo (
-            id SERIAL PRIMARY KEY,
-            ad TEXT
+            ad TEXT UNIQUE,
+            renk TEXT
         )
     """)
 
@@ -35,79 +26,39 @@ def stok():
         )
     """)
 
-    # veriler
-    cur.execute("SELECT COUNT(*) FROM urunler")
-    stok_sayisi = cur.fetchone()[0]
-
-    cur.execute("SELECT COUNT(*) FROM depo")
-    depo_sayisi = cur.fetchone()[0]
+    cur.execute("SELECT * FROM urunler ORDER BY id DESC")
+    urunler = cur.fetchall()
 
     cur.execute("SELECT * FROM hareket ORDER BY id DESC LIMIT 10")
     logs = cur.fetchall()
 
+    cur.execute("SELECT COUNT(*) FROM urunler")
+    stok_sayisi = cur.fetchone()[0]
+
     cur.close()
     conn.close()
 
-    return render_template(
-        "stok.html",
-        stok_sayisi=stok_sayisi,
-        depo_sayisi=depo_sayisi,
-        logs=logs
-    )
+    return render_template("stok.html",
+                           urunler=urunler,
+                           logs=logs,
+                           stok_sayisi=stok_sayisi)
 
 
-# ➕ ÜRÜN EKLE
 @stok_bp.route('/urun-ekle', methods=['POST'])
 def urun_ekle():
     ad = request.form.get('urun')
+    renk = request.form.get('renk')
 
     conn = get_conn()
     cur = conn.cursor()
 
-    cur.execute("INSERT INTO urunler (ad) VALUES (%s)", (ad,))
-    conn.commit()
+    # aynı ürün varsa ekleme
+    cur.execute("SELECT * FROM urunler WHERE ad=%s AND renk=%s", (ad, renk))
+    var = cur.fetchone()
 
-    cur.close()
-    conn.close()
-
-    return redirect('/stok')
-
-
-# 📥 STOK GİRİŞ
-@stok_bp.route('/stok-giris', methods=['POST'])
-def stok_giris():
-    urun = request.form.get('urun')
-    adet = request.form.get('adet')
-
-    conn = get_conn()
-    cur = conn.cursor()
-
-    cur.execute(
-        "INSERT INTO hareket (urun, adet, tarih) VALUES (%s,%s,%s)",
-        (urun, int(adet), datetime.now())
-    )
-    conn.commit()
-
-    cur.close()
-    conn.close()
-
-    return redirect('/stok')
-
-
-# 📤 STOK ÇIKIŞ
-@stok_bp.route('/stok-cikis', methods=['POST'])
-def stok_cikis():
-    urun = request.form.get('urun')
-    adet = request.form.get('adet')
-
-    conn = get_conn()
-    cur = conn.cursor()
-
-    cur.execute(
-        "INSERT INTO hareket (urun, adet, tarih) VALUES (%s,%s,%s)",
-        (urun, -int(adet), datetime.now())
-    )
-    conn.commit()
+    if not var:
+        cur.execute("INSERT INTO urunler (ad, renk) VALUES (%s,%s)", (ad, renk))
+        conn.commit()
 
     cur.close()
     conn.close()
