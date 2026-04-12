@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<h2>Stok Paneli</h2>
+
+<p>Stok Kart Sayısı: {{ stok_sayisi }}</p>
+<p>Depo Sayısı: {{ depo_sayisi }}</p>
+
+<h3>Son İşlemler</h3>
+<table border="1">
+<tr><th>Ürün</th><th>Adet</th><th>Tarih</th></tr>
+
+{% for l in logs %}
+<tr>
+<td>{{ l[1] }}</td>
+<td>{{ l[2] }}</td>
+<td>{{ l[3] }}</td>
+</tr>
+{% endfor %}
+
+</table>
+
+{% endblock %}
