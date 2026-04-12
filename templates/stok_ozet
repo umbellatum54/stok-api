@@ -1,1 +1,13 @@
-<h2>Stok Özet (Excel gibi ekran gelecek)</h2>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Stok Özet</title>
+</head>
+<body>
+
+<h2>Stok Özet Sayfası</h2>
+
+<p>Buraya Excel gibi stok tablosu gelecek.</p>
+
+</body>
+</html>
