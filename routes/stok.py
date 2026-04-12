@@ -6,42 +6,35 @@ stok_bp = Blueprint('stok', __name__)
 
 
 # 📦 ANA STOK SAYFASI
-@stok_bp.route('/stok')
-def stok():
+@stok_bp.route('/stok-giris')
+def stok_giris_page():
     conn = get_conn()
     cur = conn.cursor()
 
-    # TABLOLARI GARANTİLE
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS urunler (
-            id SERIAL PRIMARY KEY,
-            ad TEXT,
-            renk TEXT
-        )
-    """)
+    try:
+        cur.execute("SELECT ad, renk FROM urunler")
+    except:
+        # eski tabloysa (renk yoksa)
+        cur.execute("SELECT ad, '' as renk FROM urunler")
 
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS hareket (
-            id SERIAL PRIMARY KEY,
-            urun TEXT,
-            renk TEXT,
-            adet INT,
-            kullanici TEXT,
-            tarih TIMESTAMP
-        )
-    """)
+    rows = cur.fetchall()
 
-    # veri çek
-    cur.execute("SELECT COUNT(*) FROM urunler")
-    stok_sayisi = cur.fetchone()[0]
+    urun_map = {}
 
-    cur.execute("SELECT * FROM hareket ORDER BY id DESC LIMIT 10")
-    logs = cur.fetchall()
+    for r in rows:
+        ad = r[0]
+        renk = r[1] if len(r) > 1 else ""
+
+        if ad not in urun_map:
+            urun_map[ad] = []
+
+        if renk and renk not in urun_map[ad]:
+            urun_map[ad].append(renk)
 
     cur.close()
     conn.close()
 
-    return render_template("stok.html", stok_sayisi=stok_sayisi, logs=logs)
+    return render_template("stok_giris.html", urun_map=urun_map)
 
 
 # 📄 ÜRÜN SAYFASI
