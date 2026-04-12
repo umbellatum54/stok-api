@@ -5,82 +5,68 @@
 <title>Depo - Stok</title>
 
 <style>
-body{margin:0;font-family:Arial;background:#f4f6f9;}
+body{margin:0;font-family:Arial;background:#eef1f5;}
+.sidebar{width:230px;height:100vh;background:#0d1b2a;position:fixed;color:white;padding:20px;}
+.sidebar a{display:block;color:white;text-decoration:none;margin:10px 0;}
 
-/* SOL MENU */
-.sidebar{
-    width:230px;
-    height:100vh;
-    background:#0d1b2a;
-    position:fixed;
-    color:white;
-    padding:20px;
-}
-.sidebar a{
-    display:block;
-    color:white;
-    text-decoration:none;
-    margin:10px 0;
-}
+.main{margin-left:250px;padding:20px;}
 
-/* MAIN */
-.main{
-    margin-left:250px;
-    padding:20px;
-}
+.box{background:white;padding:20px;border-radius:10px;margin-bottom:20px;}
 
-/* BUTTONS */
 .buttons{
-    margin-bottom:20px;
+display:flex;
+gap:10px;
+margin-bottom:20px;
 }
+
 .btn{
-    padding:12px 18px;
-    border:none;
-    border-radius:6px;
-    color:white;
-    cursor:pointer;
-    margin-right:10px;
+padding:15px 20px;
+border:none;
+border-radius:8px;
+color:white;
+cursor:pointer;
+font-weight:bold;
 }
+
 .green{background:#27ae60;}
 .red{background:#e74c3c;}
+.purple{background:#6c5ce7;}
 .orange{background:#f39c12;}
 
-/* CARDS */
 .cards{
-    display:flex;
-    gap:20px;
-    margin-bottom:20px;
+display:flex;
+gap:20px;
 }
+
 .card{
-    flex:1;
-    background:white;
-    padding:20px;
-    border-radius:10px;
-    box-shadow:0 2px 5px rgba(0,0,0,0.1);
+flex:1;
+background:white;
+padding:20px;
+border-radius:10px;
+display:flex;
+align-items:center;
+justify-content:space-between;
 }
 
-/* TABLE */
-table{
-    width:100%;
-    background:white;
-    border-collapse:collapse;
-}
-th, td{
-    padding:10px;
-    border-bottom:1px solid #eee;
+.section{
+display:flex;
+gap:20px;
 }
 
-/* FORM TABLE */
-.form-table select, .form-table input{
-    width:100%;
-    padding:6px;
+.table-box{
+flex:1;
+background:white;
+border-radius:10px;
+padding:10px;
 }
+
+table{width:100%;border-collapse:collapse;}
+th,td{padding:8px;border-bottom:1px solid #eee;}
 </style>
 </head>
 
 <body>
 
-<!-- SOL MENU -->
 <div class="sidebar">
 <h2>Umbellatum</h2>
 
@@ -98,113 +84,98 @@ th, td{
 
 <a href="/stok"><b>Depo - Stok</b></a>
 <a href="/urunler">Ürün Kartları</a>
-<a>İnsan Kaynakları</a>
-<a>Nakit Yönetimi</a>
-<a>Tedarikçiler</a>
-<a>Ayarlar</a>
 </div>
 
-<!-- MAIN -->
 <div class="main">
 
 <h2>Depo - Stok</h2>
 
-<!-- BUTONLAR -->
-<div class="buttons">
-<a href="/urunler"><button class="btn green">Ürün Kartı</button></a>
-<button class="btn green">Stok Giriş</button>
-<button class="btn red">Stok Çıkış</button>
-<button class="btn orange">Stok Özeti</button>
+<!-- 🔥 BUTONLAR -->
+<div class="box buttons">
+
+<a href="/urunler"><button class="btn green">Ürün Tanımla</button></a>
+<a href="/stok-giris"><button class="btn green">Stok Giriş - Üretimden </button></a>
+<a href="/stok-cikis"><button class="btn red">Manuel Stok Çıkış</button></a>
+<a href="/stok-ozet"><button class="btn orange">Stok Özeti</button></a>
+
 </div>
 
-<!-- KARTLAR -->
+<!-- 🔥 KARTLAR -->
 <div class="cards">
-<div class="card">
-<h3>Stok Kart Sayısı</h3>
-<p>{{stok_sayisi}}</p>
-</div>
 
 <div class="card">
-<h3>Bugünkü İşlem</h3>
-<p>0</p>
+<div>STOK KART SAYISI</div>
+<div><b>{{stok_sayisi}}</b></div>
 </div>
+
+<div class="card">
+<div>DEPO SAYISI</div>
+<div><b>{{depo_sayisi}}</b></div>
 </div>
 
-<!-- 🔥 STOK GİRİŞ -->
-<h3>Üretimden Gelen Ürün Girişi</h3>
+<div class="card">
+<div>BUGÜNKÜ İŞLEM</div>
+<div><b>0</b></div>
+</div>
 
-<form method="POST" action="/stok-toplu-giris">
-
-<table class="form-table">
-<tr>
-<th>Ürün</th>
-<th>Renk</th>
-<th>Adet</th>
-</tr>
-
-{% for i in range(1,11) %}
-<tr>
-<td>
-<select name="urun{{i}}" onchange="renkDoldur(this, {{i}})">
-<option value="">Seç</option>
-{% for u in urunler %}
-<option value="{{u[1]}}" data-renk="{{u[2]}}">{{u[1]}}</option>
-{% endfor %}
-</select>
-</td>
-
-<td>
-<input name="renk{{i}}" id="renk{{i}}" readonly>
-</td>
-
-<td>
-<input name="adet{{i}}" type="number">
-</td>
-</tr>
-{% endfor %}
-
-</table>
+</div>
 
 <br>
-<button class="btn green">Toplu Kaydet</button>
 
-</form>
+<!-- 🔥 ALT TABLOLAR -->
+<div class="section">
 
-<br><br>
-
-<!-- 🔥 SON İŞLEMLER -->
-<h3>Son İşlemler</h3>
-
+<div class="table-box">
+<h4>Eksiye Düşmüş Stoklar</h4>
 <table>
+<tr><th>Stok</th><th>Depo</th></tr>
+</table>
+</div>
+
+<div class="table-box">
+<h4>Stokta Kalmayan</h4>
+<table>
+<tr><th>Stok</th><th>Depo</th></tr>
+</table>
+</div>
+
+</div>
+
+<br>
+
+<div class="section">
+
+<div class="table-box">
+<h4>Son İşlemler</h4>
+<table>
+
 <tr>
 <th>Ürün</th>
-<th>Renk</th>
 <th>Adet</th>
-<th>Kullanıcı</th>
 <th>Tarih</th>
 </tr>
 
 {% for l in logs %}
 <tr>
 <td>{{l[1]}}</td>
-<td>{{l[2]}}</td>
 <td>{{l[3]}}</td>
-<td>{{l[4]}}</td>
 <td>{{l[5]}}</td>
 </tr>
 {% endfor %}
 
 </table>
+</div>
+
+<div class="table-box">
+<h4>En Çok Kullanılan</h4>
+<table>
+<tr><th>Ürün</th><th>Adet</th></tr>
+</table>
+</div>
 
 </div>
 
-<!-- JS -->
-<script>
-function renkDoldur(select, i){
-    var renk = select.options[select.selectedIndex].getAttribute("data-renk");
-    document.getElementById("renk"+i).value = renk || "";
-}
-</script>
+</div>
 
 </body>
 </html>
