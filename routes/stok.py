@@ -83,16 +83,20 @@ def stok_giris_page():
     conn = get_conn()
     cur = conn.cursor()
 
-    # ürünleri çek
-    cur.execute("SELECT ad, renk FROM urunler ORDER BY ad")
-    data = cur.fetchall()
+    cur.execute("SELECT ad, renk FROM urunler")
+    rows = cur.fetchall()
 
     urun_map = {}
 
-    for ad, renk in data:
+    for r in rows:
+        ad = r[0]
+        renk = r[1] if r[1] else ""
+
         if ad not in urun_map:
             urun_map[ad] = []
-        urun_map[ad].append(renk)
+
+        if renk and renk not in urun_map[ad]:
+            urun_map[ad].append(renk)
 
     cur.close()
     conn.close()
