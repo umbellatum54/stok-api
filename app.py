@@ -1,31 +1,32 @@
 from flask import Flask, request, redirect, session
 import psycopg2
 from datetime import datetime, timedelta
+import os
 
 app = Flask(__name__)
 app.secret_key = "secret123"
 app.permanent_session_lifetime = timedelta(days=7)
 
-# DB
+# 🔐 DB (GÜVENLİ)
 def get_conn():
     return psycopg2.connect(
         host="stokdb123.postgres.database.azure.com",
         database="postgres",
         user="adminuser2153",
-        password="Deneme1234",
+        password=os.environ.get("DB_PASSWORD"),
         port=5432,
         sslmode="require"
     )
 
-# LOGIN
+# 🔹 LOGIN
 @app.route('/')
 def login_page():
     return '''
     <style>
     body {font-family:Arial;background:#f0f2f5;display:flex;justify-content:center;align-items:center;height:100vh;}
     .box {background:white;padding:30px;border-radius:10px;}
-    input {display:block;margin:10px 0;padding:10px;}
-    button {padding:10px;background:#7ED957;border:none;}
+    input {display:block;margin:10px 0;padding:10px;width:200px;}
+    button {padding:10px;background:#7ED957;border:none;width:100%;}
     </style>
 
     <form class="box" method="POST" action="/login">
@@ -46,17 +47,13 @@ def login():
         return redirect("/dashboard")
     return "Hatalı giriş"
 
-# ORTAK PANEL TEMPLATE
+# 🔹 LAYOUT
 def layout(content, title="Dashboard"):
     return f'''
     <html>
     <head>
     <style>
-    body {{
-        margin:0;
-        font-family:Arial;
-        display:flex;
-    }}
+    body {{margin:0;font-family:Arial;display:flex;}}
 
     .sidebar {{
         width:220px;
@@ -66,17 +63,12 @@ def layout(content, title="Dashboard"):
         padding:20px;
     }}
 
-    .sidebar h2 {{
-        margin-bottom:30px;
-    }}
-
     .menu a {{
         display:block;
         color:white;
         padding:10px;
         text-decoration:none;
         border-radius:6px;
-        margin-bottom:5px;
     }}
 
     .menu a:hover {{
@@ -100,21 +92,12 @@ def layout(content, title="Dashboard"):
     table {{
         width:100%;
         background:white;
-        border-radius:10px;
     }}
 
     th, td {{
         padding:10px;
         border-bottom:1px solid #eee;
     }}
-
-    button {{
-        background:#7ED957;
-        border:none;
-        padding:8px 12px;
-        border-radius:6px;
-    }}
-
     </style>
     </head>
 
@@ -142,7 +125,7 @@ def layout(content, title="Dashboard"):
     </html>
     '''
 
-# DASHBOARD (ANA SAYFA)
+# 🔹 DASHBOARD
 @app.route('/dashboard')
 def dashboard():
     if "user" not in session:
@@ -150,21 +133,13 @@ def dashboard():
 
     conn = get_conn()
     cur = conn.cursor()
-
     cur.execute("SELECT adet FROM stok")
     rows = cur.fetchall()
     toplam = sum([r[0] for r in rows]) if rows else 0
 
-    content = f'''
-    <div class="card">
-        <h3>Toplam Stok</h3>
-        <h1>{toplam}</h1>
-    </div>
-    '''
+    return layout(f"<div class='card'><h3>Toplam Stok</h3><h1>{toplam}</h1></div>")
 
-    return layout(content, "Dashboard")
-
-# STOKLAR
+# 🔹 STOK
 @app.route('/stoklar')
 def stoklar():
     if "user" not in session:
@@ -172,22 +147,15 @@ def stoklar():
 
     conn = get_conn()
     cur = conn.cursor()
-
     cur.execute("SELECT urun, adet, tarih FROM stok ORDER BY id DESC")
     rows = cur.fetchall()
 
-    html = '''
-    <div class="card">
-        <form method="POST" action="/ekle">
-            <input name="urun" placeholder="Ürün">
-            <input name="adet" type="number" placeholder="Adet">
-            <button>Kaydet</button>
-        </form>
-    </div>
+    html = "<div class='card'><form method='POST' action='/ekle'>"
+    html += "<input name='urun' placeholder='Ürün'>"
+    html += "<input name='adet' type='number' placeholder='Adet'>"
+    html += "<button>Kaydet</button></form></div>"
 
-    <table>
-    <tr><th>Ürün</th><th>Adet</th><th>Tarih</th></tr>
-    '''
+    html += "<table><tr><th>Ürün</th><th>Adet</th><th>Tarih</th></tr>"
 
     for r in rows:
         html += f"<tr><td>{r[0]}</td><td>{r[1]}</td><td>{r[2]}</td></tr>"
@@ -196,7 +164,7 @@ def stoklar():
 
     return layout(html, "Stoklar")
 
-# EKLE
+# 🔹 EKLE
 @app.route('/ekle', methods=['POST'])
 def ekle():
     conn = get_conn()
@@ -222,14 +190,14 @@ def ekle():
 
     return redirect("/stoklar")
 
-# DİĞER MENÜLER (şimdilik boş)
+# 🔹 DİĞER SAYFALAR
 @app.route('/satislar')
 def satislar():
-    return layout("<div class='card'>Satışlar sayfası</div>", "Satışlar")
+    return layout("<div class='card'>Satışlar</div>", "Satışlar")
 
 @app.route('/musteriler')
 def musteriler():
-    return layout("<div class='card'>Müşteriler sayfası</div>", "Müşteriler")
+    return layout("<div class='card'>Müşteriler</div>", "Müşteriler")
 
 @app.route('/ik')
 def ik():
@@ -239,7 +207,7 @@ def ik():
 def nakit():
     return layout("<div class='card'>Nakit Yönetimi</div>", "Nakit")
 
-# LOGOUT
+# 🔹 LOGOUT
 @app.route('/logout')
 def logout():
     session.clear()
