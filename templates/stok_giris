@@ -1,84 +1,29 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>Stok Giriş</title>
-
-<style>
-body{font-family:Arial;background:#eef1f5;padding:20px;}
-table{width:100%;background:white;border-collapse:collapse;}
-th,td{padding:10px;border-bottom:1px solid #eee;}
-select,input{width:100%;padding:8px;}
-button{padding:12px 20px;background:#27ae60;color:white;border:none;border-radius:5px;}
-</style>
+    <title>Stok Giriş</title>
 </head>
-
 <body>
 
-<h2>Üretimden Gelen Ürün Girişi</h2>
+<h2>Stok Giriş Sayfası</h2>
 
 <form method="POST" action="/stok-toplu-giris">
+    {% for i in range(1,11) %}
+        <div style="margin-bottom:10px;">
+            <select name="urun{{i}}">
+                <option value="">Ürün seç</option>
+                {% for u in urun_map %}
+                    <option value="{{u}}">{{u}}</option>
+                {% endfor %}
+            </select>
 
-<table>
-<tr>
-<th>Ürün</th>
-<th>Renk</th>
-<th>Adet</th>
-</tr>
+            <input type="text" name="renk{{i}}" placeholder="Renk">
+            <input type="number" name="adet{{i}}" placeholder="Adet">
+        </div>
+    {% endfor %}
 
-{% for i in range(1,11) %}
-<tr>
-
-<td>
-<select name="urun{{i}}" onchange="renkGetir({{i}})">
-<option value="">Seç</option>
-
-{% for urun in urun_map %}
-<option value="{{urun}}">{{urun}}</option>
-{% endfor %}
-
-</select>
-</td>
-
-<td>
-<select name="renk{{i}}" id="renk{{i}}">
-<option value="">Seç</option>
-</select>
-</td>
-
-<td>
-<input name="adet{{i}}" type="number">
-</td>
-
-</tr>
-{% endfor %}
-
-</table>
-
-<br>
-<button>Kaydet</button>
-
+    <button type="submit">Kaydet</button>
 </form>
-
-<script>
-var urunMap = {{ urun_map | tojson | safe }};
-
-function renkGetir(i){
-    var urun = document.getElementsByName("urun"+i)[0].value;
-    var renkSelect = document.getElementById("renk"+i);
-
-    renkSelect.innerHTML = "<option value=''>Seç</option>";
-
-    if(urunMap[urun]){
-        urunMap[urun].forEach(function(r){
-            var opt = document.createElement("option");
-            opt.value = r;
-            opt.text = r;
-            renkSelect.appendChild(opt);
-        });
-    }
-}
-</script>
 
 </body>
 </html>
