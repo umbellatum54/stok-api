@@ -80,7 +80,24 @@ def urunler_sayfa():
 
 @stok_bp.route('/stok-giris')
 def stok_giris_page():
-    return render_template("stok_giris.html")
+    conn = get_conn()
+    cur = conn.cursor()
+
+    # ürünleri çek
+    cur.execute("SELECT ad, renk FROM urunler ORDER BY ad")
+    data = cur.fetchall()
+
+    urun_map = {}
+
+    for ad, renk in data:
+        if ad not in urun_map:
+            urun_map[ad] = []
+        urun_map[ad].append(renk)
+
+    cur.close()
+    conn.close()
+
+    return render_template("stok_giris.html", urun_map=urun_map)
 
 @stok_bp.route('/stok-cikis')
 def stok_cikis_page():
