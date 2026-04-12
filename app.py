@@ -6,7 +6,10 @@ import os
 app = Flask(__name__)
 app.secret_key = "secret123"
 
-UPLOAD_FOLDER = "static/uploads"
+UPLOAD_FOLDER = "/tmp/uploads"
+
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
 
 # 🔐 DB
 def get_conn():
@@ -136,7 +139,7 @@ def stok():
     html += "<div class='card'><h3>Ürünler</h3><table><tr><th>Resim</th><th>Ürün</th><th>Renk</th></tr>"
 
     for u in urunler:
-        img = f"<img src='/static/uploads/{u[7]}'>" if u[7] else ""
+        img = f"<img src='/get_image/{u[7]}'>" if u[7] else ""
         html += f"<tr><td>{img}</td><td>{u[1]}</td><td>{u[2]}</td></tr>"
 
     html += "</table></div>"
@@ -218,4 +221,9 @@ def sayim_kaydet():
     ))
 
     conn.commit()
+    
     return redirect("/sayim")
+    @app.route('/get_image/<filename>')
+def get_image(filename):
+    from flask import send_from_directory
+    return send_from_directory(UPLOAD_FOLDER, filename)
