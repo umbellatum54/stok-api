@@ -7,7 +7,7 @@ app = Flask(__name__)
 app.secret_key = "secret123"
 app.permanent_session_lifetime = timedelta(days=7)
 
-# 🔐 DB BAĞLANTI
+# 🔐 DB
 def get_conn():
     return psycopg2.connect(
         host="stokdb123.postgres.database.azure.com",
@@ -18,64 +18,87 @@ def get_conn():
         sslmode="require"
     )
 
-# 🔹 LOGIN SAYFASI
+# 🔹 LOGIN
 @app.route('/')
-def login_page():
+def login():
     return '''
     <style>
     body {font-family:Arial;background:#eef2f7;display:flex;justify-content:center;align-items:center;height:100vh;}
-    .box {background:white;padding:30px;border-radius:10px;width:300px;box-shadow:0 5px 20px rgba(0,0,0,0.1);}
-    input {width:100%;padding:10px;margin:10px 0;border:1px solid #ddd;border-radius:6px;}
-    button {width:100%;padding:12px;background:#7ED957;border:none;border-radius:6px;font-weight:bold;}
+    .box {background:white;padding:30px;border-radius:10px;width:300px;}
+    input {width:100%;padding:10px;margin:10px 0;}
+    button {width:100%;padding:12px;background:#7ED957;border:none;}
     </style>
 
-    <form class="box" method="POST" action="/login">
+    <form class="box" method="POST" action="/giris">
         <h2>UMbellatum</h2>
-        <input name="username" placeholder="Kullanıcı">
-        <input type="password" name="password" placeholder="Şifre">
-        <label><input type="checkbox" name="remember"> Beni hatırla</label>
+        <input name="u" placeholder="Kullanıcı">
+        <input type="password" name="p" placeholder="Şifre">
         <button>Giriş Yap</button>
     </form>
     '''
 
-# 🔹 LOGIN
-@app.route('/login', methods=['POST'])
-def login():
-    if request.form.get("username") == "admin" and request.form.get("password") == "1234":
-        session["user"] = "admin"
-        if request.form.get("remember"):
-            session.permanent = True
+@app.route('/giris', methods=['POST'])
+def giris():
+    if request.form.get("u") == "admin":
+        session["user"] = "ok"
         return redirect("/dashboard")
-    return "Hatalı giriş"
+    return "Hatalı"
 
 # 🔹 LAYOUT
 def layout(content, title="Panel"):
+
     return f'''
     <html>
     <head>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
     <style>
-    body {{margin:0;font-family:Arial;display:flex;background:#f4f6f9;}}
+    body {{
+        margin:0;
+        font-family:Arial;
+        display:flex;
+        background:#f4f6f9;
+    }}
 
     .sidebar {{
-        width:220px;
-        background:#1e293b;
+        width:260px;
+        background:#0f172a;
         color:white;
         height:100vh;
         padding:20px;
     }}
 
-    .sidebar h2 {{margin-bottom:20px;}}
+    .logo {{
+        text-align:center;
+        margin-bottom:30px;
+    }}
+
+    .logo img {{
+        width:120px;
+    }}
 
     .menu a {{
         display:block;
         color:white;
-        padding:10px;
+        padding:12px;
         text-decoration:none;
         border-radius:6px;
+        margin-bottom:5px;
     }}
 
     .menu a:hover {{
-        background:#334155;
+        background:#1e293b;
+    }}
+
+    .submenu {{
+        margin-left:15px;
+        display:none;
+    }}
+
+    .submenu a {{
+        font-size:14px;
+        background:#1e293b;
     }}
 
     .main {{
@@ -86,77 +109,72 @@ def layout(content, title="Panel"):
         background:#3c8dbc;
         color:white;
         padding:15px;
-        display:flex;
-        justify-content:space-between;
     }}
 
     .content {{
         padding:20px;
     }}
 
-    .btn {{
-        padding:15px 20px;
-        border-radius:6px;
-        color:white;
-        display:inline-block;
-        margin:5px;
-        text-decoration:none;
-        font-weight:bold;
-    }}
-
-    .green {{background:#00a65a;}}
-    .red {{background:#dd4b39;}}
-    .purple {{background:#605ca8;}}
-    .orange {{background:#f39c12;}}
-
     .card {{
-        display:inline-block;
-        width:30%;
         background:white;
         padding:20px;
-        margin:10px;
-        border-radius:8px;
-        text-align:center;
-        box-shadow:0 2px 10px rgba(0,0,0,0.1);
+        border-radius:10px;
+        margin-bottom:20px;
+        box-shadow:0 5px 15px rgba(0,0,0,0.1);
     }}
 
-    table {{
-        width:100%;
-        background:white;
-        margin-top:20px;
-    }}
-
-    th, td {{
-        padding:10px;
-        border-bottom:1px solid #eee;
-    }}
     </style>
+
+    <script>
+    function toggleMenu(id){{
+        var x = document.getElementById(id);
+        if(x.style.display==="block") x.style.display="none";
+        else x.style.display="block";
+    }}
+    </script>
+
     </head>
 
     <body>
 
     <div class="sidebar">
-        <h2>UMbellatum</h2>
-        <div class="menu">
-            <a href="/dashboard">Dashboard</a>
-            <a href="/stoklar">Stoklar</a>
-            <a href="/satislar">Satışlar</a>
-            <a href="/musteriler">Müşteriler</a>
-            <a href="/ik">İnsan Kaynakları</a>
-            <a href="/nakit">Nakit Yönetimi</a>
-            <a href="/logout">Çıkış</a>
+
+        <div class="logo">
+            <img src="/static/logo.png">
         </div>
+
+        <div class="menu">
+
+            <a href="/dashboard"><i class="fa fa-home"></i> Dashboard</a>
+
+            <a onclick="toggleMenu('pazar')">
+                <i class="fa fa-store"></i> Online Pazaryeri
+            </a>
+
+            <div id="pazar" class="submenu">
+                <a href="#">Trendyol</a>
+                <a href="#">Hepsiburada</a>
+                <a href="#">Pazarama</a>
+                <a href="#">N11</a>
+                <a href="#">Amazon</a>
+                <a href="#">Web Sitem</a>
+            </div>
+
+            <a href="/stok"><i class="fa fa-box"></i> Depo - Stok</a>
+            <a href="/ik"><i class="fa fa-users"></i> İnsan Kaynakları</a>
+            <a href="#"><i class="fa fa-wallet"></i> Nakit Yönetimi</a>
+            <a href="#"><i class="fa fa-truck"></i> Tedarikçiler</a>
+            <a href="#"><i class="fa fa-cog"></i> Ayarlar</a>
+
+        </div>
+
     </div>
 
     <div class="main">
 
-        <div class="topbar">
-            <div><b>EBS Depo-Stok</b></div>
-            <div>Hoşgeldin admin</div>
-        </div>
+        <div class="topbar">{title}</div>
 
         <div class="content">
-            <h2>{title}</h2>
             {content}
         </div>
 
@@ -169,133 +187,67 @@ def layout(content, title="Panel"):
 # 🔹 DASHBOARD
 @app.route('/dashboard')
 def dashboard():
-    if "user" not in session:
-        return redirect("/")
+    return layout("<div class='card'>Dashboard Hazır</div>", "Dashboard")
 
+# 🔹 DEPO STOK (BAŞLIYORUZ)
+@app.route('/stok')
+def stok():
     try:
         conn = get_conn()
         cur = conn.cursor()
 
-        cur.execute("SELECT COUNT(*) FROM stok")
-        stok_sayisi = cur.fetchone()[0]
-
-        html = f'''
-        <h3>Hızlı İşlemler</h3>
-
-        <a href="/stoklar" class="btn green">Stok Giriş</a>
-        <a href="/stoklar" class="btn red">Stok Çıkış</a>
-        <a href="#" class="btn purple">Transfer</a>
-        <a href="/stoklar" class="btn orange">Stok Listesi</a>
-
-        <div>
-            <div class="card">
-                <h3>STOK SAYISI</h3>
-                <h1>{stok_sayisi}</h1>
-            </div>
-
-            <div class="card">
-                <h3>DEPO SAYISI</h3>
-                <h1>1</h1>
-            </div>
-
-            <div class="card">
-                <h3>BUGÜNKÜ İŞLEM</h3>
-                <h1>0</h1>
-            </div>
-        </div>
-        '''
-
-        return layout(html, "Dashboard")
-
-    except Exception as e:
-        return f"HATA: {str(e)}"
-
-# 🔹 STOK SAYFASI
-@app.route('/stoklar')
-def stoklar():
-    if "user" not in session:
-        return redirect("/")
-
-    try:
-        conn = get_conn()
-        cur = conn.cursor()
-
-        cur.execute("SELECT urun, adet, tarih FROM stok ORDER BY id DESC")
+        cur.execute("SELECT urun, adet FROM stok ORDER BY id DESC")
         rows = cur.fetchall()
 
         html = '''
-        <form method="POST" action="/ekle">
-            <input name="urun" placeholder="Ürün">
-            <input name="adet" type="number" placeholder="Adet">
-            <button>Kaydet</button>
-        </form>
+        <div class="card">
+            <h3>Stok Giriş</h3>
+            <form method="POST" action="/ekle">
+                <input name="urun" placeholder="Ürün"><br><br>
+                <input name="adet" type="number" placeholder="Adet"><br><br>
+                <button>Kaydet</button>
+            </form>
+        </div>
         '''
 
-        html += "<table><tr><th>Ürün</th><th>Adet</th><th>Tarih</th></tr>"
+        html += "<div class='card'><table><tr><th>Ürün</th><th>Adet</th></tr>"
 
         for r in rows:
-            html += f"<tr><td>{r[0]}</td><td>{r[1]}</td><td>{r[2]}</td></tr>"
+            html += f"<tr><td>{r[0]}</td><td>{r[1]}</td></tr>"
 
-        html += "</table>"
+        html += "</table></div>"
 
-        return layout(html, "Stoklar")
+        return layout(html, "Depo - Stok")
 
     except Exception as e:
         return f"HATA: {str(e)}"
 
-# 🔹 VERİ EKLE
+# 🔹 EKLE
 @app.route('/ekle', methods=['POST'])
 def ekle():
-    try:
-        conn = get_conn()
-        cur = conn.cursor()
+    conn = get_conn()
+    cur = conn.cursor()
 
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS stok (
-                id SERIAL PRIMARY KEY,
-                urun TEXT,
-                adet INTEGER,
-                tarih TEXT
-            )
-        """)
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS stok (
+        id SERIAL PRIMARY KEY,
+        urun TEXT,
+        adet INTEGER
+    )
+    """)
 
-        cur.execute(
-            "INSERT INTO stok (urun, adet, tarih) VALUES (%s, %s, %s)",
-            (
-                request.form.get("urun"),
-                int(request.form.get("adet")),
-                datetime.now().strftime("%Y-%m-%d %H:%M")
-            )
-        )
+    cur.execute(
+        "INSERT INTO stok (urun, adet) VALUES (%s, %s)",
+        (request.form.get("urun"), int(request.form.get("adet")))
+    )
 
-        conn.commit()
-        cur.close()
-        conn.close()
+    conn.commit()
+    cur.close()
+    conn.close()
 
-        return redirect("/stoklar")
+    return redirect("/stok")
 
-    except Exception as e:
-        return f"HATA: {str(e)}"
-
-# 🔹 DİĞER SAYFALAR
-@app.route('/satislar')
-def satislar():
-    return layout("Satışlar", "Satışlar")
-
-@app.route('/musteriler')
-def musteriler():
-    return layout("Müşteriler", "Müşteriler")
-
+# 🔹 İK
 @app.route('/ik')
 def ik():
-    return layout("İnsan Kaynakları", "İK")
-
-@app.route('/nakit')
-def nakit():
-    return layout("Nakit Yönetimi", "Nakit")
-
-# 🔹 LOGOUT
-@app.route('/logout')
-def logout():
-    session.clear()
-    return redirect("/")
+    return layout("<div class='card'>İnsan Kaynakları</div>", "İK")
