@@ -6,9 +6,12 @@ import os
 app = Flask(__name__)
 app.secret_key = "secret123"
 app.permanent_session_lifetime = timedelta(days=7)
+app.debug = True  # 🔥 HATALARI GÖSTER
 
-# 🔐 DB (GÜVENLİ)
+# 🔐 DB
 def get_conn():
+    print("ŞİFRE:", os.environ.get("DB_PASSWORD"))  # TEST
+
     return psycopg2.connect(
         host="stokdb123.postgres.database.azure.com",
         database="postgres",
@@ -128,67 +131,83 @@ def layout(content, title="Dashboard"):
 # 🔹 DASHBOARD
 @app.route('/dashboard')
 def dashboard():
-    if "user" not in session:
-        return redirect("/")
+    try:
+        if "user" not in session:
+            return redirect("/")
 
-    conn = get_conn()
-    cur = conn.cursor()
-    cur.execute("SELECT adet FROM stok")
-    rows = cur.fetchall()
-    toplam = sum([r[0] for r in rows]) if rows else 0
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute("SELECT adet FROM stok")
+        rows = cur.fetchall()
+        toplam = sum([r[0] for r in rows]) if rows else 0
 
-    return layout(f"<div class='card'><h3>Toplam Stok</h3><h1>{toplam}</h1></div>")
+        return layout(f"<div class='card'><h3>Toplam Stok</h3><h1>{toplam}</h1></div>")
+
+    except Exception as e:
+        return f"HATA: {str(e)}"
 
 # 🔹 STOK
 @app.route('/stoklar')
 def stoklar():
-    if "user" not in session:
-        return redirect("/")
+    try:
+        if "user" not in session:
+            return redirect("/")
 
-    conn = get_conn()
-    cur = conn.cursor()
-    cur.execute("SELECT urun, adet, tarih FROM stok ORDER BY id DESC")
-    rows = cur.fetchall()
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute("SELECT urun, adet, tarih FROM stok ORDER BY id DESC")
+        rows = cur.fetchall()
 
-    html = "<div class='card'><form method='POST' action='/ekle'>"
-    html += "<input name='urun' placeholder='Ürün'>"
-    html += "<input name='adet' type='number' placeholder='Adet'>"
-    html += "<button>Kaydet</button></form></div>"
+        html = "<div class='card'><form method='POST' action='/ekle'>"
+        html += "<input name='urun' placeholder='Ürün'>"
+        html += "<input name='adet' type='number' placeholder='Adet'>"
+        html += "<button>Kaydet</button></form></div>"
 
-    html += "<table><tr><th>Ürün</th><th>Adet</th><th>Tarih</th></tr>"
+        html += "<table><tr><th>Ürün</th><th>Adet</th><th>Tarih</th></tr>"
 
-    for r in rows:
-        html += f"<tr><td>{r[0]}</td><td>{r[1]}</td><td>{r[2]}</td></tr>"
+        for r in rows:
+            html += f"<tr><td>{r[0]}</td><td>{r[1]}</td><td>{r[2]}</td></tr>"
 
-    html += "</table>"
+        html += "</table>"
 
-    return layout(html, "Stoklar")
+        return layout(html, "Stoklar")
+
+    except Exception as e:
+        return f"HATA: {str(e)}"
 
 # 🔹 EKLE
 @app.route('/ekle', methods=['POST'])
 def ekle():
-    conn = get_conn()
-    cur = conn.cursor()
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
 
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS stok (
-            id SERIAL PRIMARY KEY,
-            urun TEXT,
-            adet INTEGER,
-            tarih TEXT
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS stok (
+                id SERIAL PRIMARY KEY,
+                urun TEXT,
+                adet INTEGER,
+                tarih TEXT
+            )
+        """)
+
+        cur.execute(
+            "INSERT INTO stok (urun, adet, tarih) VALUES (%s, %s, %s)",
+            (
+                request.form.get("urun"),
+                int(request.form.get("adet")),
+                datetime.now().strftime("%Y-%m-%d %H:%M")
+            )
         )
-    """)
 
-    cur.execute(
-        "INSERT INTO stok (urun, adet, tarih) VALUES (%s, %s, %s)",
-        (request.form.get("urun"), int(request.form.get("adet")), datetime.now().strftime("%Y-%m-%d %H:%M"))
-    )
+        conn.commit()
+        cur.close()
+        conn.close()
 
-    conn.commit()
-    cur.close()
-    conn.close()
+        return redirect("/stoklar")
 
-    return redirect("/stoklar")
+    except Exception as e:
+        return f"HATA: {str(e)}"
 
 # 🔹 DİĞER SAYFALAR
 @app.route('/satislar')
