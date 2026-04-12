@@ -37,7 +37,7 @@ def giris():
     session["user"] = request.form.get("u")
     return redirect("/dashboard")
 
-# LAYOUT (FULL MENÜ)
+# LAYOUT
 def layout(content, title="Panel"):
     return f'''
     <html>
@@ -45,36 +45,17 @@ def layout(content, title="Panel"):
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <style>
     body {{margin:0;font-family:Arial;display:flex;background:#f4f6f9;}}
-
-    .sidebar {{
-        width:250px;
-        background:#0f172a;
-        color:white;
-        height:100vh;
-        padding:20px;
-    }}
-
-    .menu a {{
-        display:block;
-        color:white;
-        padding:10px;
-        text-decoration:none;
-    }}
-
-    .menu a:hover {{background:#1e293b;}}
-
-    .main {{flex:1;}}
-
-    .top {{background:#3c8dbc;color:white;padding:15px;}}
-
-    .content {{padding:20px;}}
-
-    .card {{
-        background:white;
-        padding:20px;
-        border-radius:10px;
-        margin-bottom:20px;
-    }}
+    .sidebar {{width:250px;background:#0f172a;color:white;height:100vh;padding:20px;}}
+    .menu a {{display:block;color:white;padding:10px;text-decoration:none}}
+    .menu a:hover {{background:#1e293b}}
+    .main {{flex:1}}
+    .top {{background:#3c8dbc;color:white;padding:15px}}
+    .content {{padding:20px}}
+    .card {{background:white;padding:20px;border-radius:10px;margin-bottom:20px}}
+    input,select {{padding:8px;margin:5px}}
+    button {{padding:10px;background:#00a65a;color:white;border:none}}
+    table {{width:100%}}
+    th,td {{padding:8px;border-bottom:1px solid #ddd}}
     </style>
     </head>
 
@@ -82,7 +63,6 @@ def layout(content, title="Panel"):
 
     <div class="sidebar">
         <h2>UMbellatum</h2>
-
         <div class="menu">
             <a href="/dashboard"><i class="fa fa-home"></i> Dashboard</a>
             <a href="/stok"><i class="fa fa-box"></i> Depo - Stok</a>
@@ -108,12 +88,13 @@ def layout(content, title="Panel"):
 def dashboard():
     return layout("<div class='card'>Dashboard hazır</div>", "Dashboard")
 
-# STOK
+# STOK SAYFA
 @app.route('/stok')
 def stok():
     conn = get_conn()
     cur = conn.cursor()
 
+    # TABLOLAR
     cur.execute("""
     CREATE TABLE IF NOT EXISTS urunler (
         id SERIAL PRIMARY KEY,
@@ -123,10 +104,31 @@ def stok():
     )
     """)
 
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS hareket (
+        id SERIAL PRIMARY KEY,
+        urun TEXT,
+        renk TEXT,
+        adet INTEGER,
+        tip TEXT,
+        tarih TEXT,
+        kullanici TEXT
+    )
+    """)
+
+    # ÜRÜNLER
     cur.execute("SELECT * FROM urunler")
     urunler = cur.fetchall()
 
+    # DROPDOWN
+    cur.execute("SELECT DISTINCT ad FROM urunler")
+    urun_list = [r[0] for r in cur.fetchall()]
+
+    cur.execute("SELECT DISTINCT renk FROM urunler")
+    renk_list = [r[0] for r in cur.fetchall()]
+
     html = '''
+
     <div class="card">
     <h3>Ürün Kartı</h3>
     <form method="POST" action="/urun_ekle" enctype="multipart/form-data">
@@ -136,6 +138,39 @@ def stok():
         <button>Kaydet</button>
     </form>
     </div>
+
+    <div class="card">
+    <h3>Stok Giriş</h3>
+    <form method="POST" action="/stok_giris">
+    Ürün:<select name="urun">
+    '''
+
+    for u in urun_list:
+        html += f"<option>{u}</option>"
+
+    html += "</select> Renk:<select name='renk'>"
+
+    for r in renk_list:
+        html += f"<option>{r}</option>"
+
+    html += '''
+    </select>
+    <input name="adet" type="number" placeholder="Adet">
+    <button>Giriş</button>
+    </form>
+    </div>
+
+    <div class="card">
+    <h3>Stok Çıkış</h3>
+    <form method="POST" action="/stok_cikis">
+        <input name="urun" placeholder="Ürün">
+        <input name="adet" type="number" placeholder="Adet">
+        <button style="background:red">Çıkış</button>
+    </form>
+    </div>
+
+    <div class="card">
+    <h3>Ürünler</h3>
     '''
 
     for u in urunler:
@@ -143,7 +178,21 @@ def stok():
         if u[3]:
             img = f"<img src='/img/{u[3]}' width='80'>"
 
-        html += f"<div class='card'>{img}<br>{u[1]} - {u[2]}</div>"
+        html += f"<div>{img} {u[1]} - {u[2]}</div>"
+
+    html += "</div>"
+
+    # LOG
+    cur.execute("SELECT * FROM hareket ORDER BY id DESC LIMIT 10")
+    logs = cur.fetchall()
+
+    html += "<div class='card'><h3>Son İşlemler</h3><table>"
+    html += "<tr><th>Ürün</th><th>Renk</th><th>Adet</th><th>Tip</th><th>Tarih</th><th>Kullanıcı</th></tr>"
+
+    for l in logs:
+        html += f"<tr><td>{l[1]}</td><td>{l[2]}</td><td>{l[3]}</td><td>{l[4]}</td><td>{l[5]}</td><td>{l[6]}</td></tr>"
+
+    html += "</table></div>"
 
     return layout(html, "Depo - Stok")
 
@@ -171,7 +220,45 @@ def urun_ekle():
     )
 
     conn.commit()
+    return redirect("/stok")
 
+# STOK GİRİŞ
+@app.route('/stok_giris', methods=['POST'])
+def stok_giris():
+    conn = get_conn()
+    cur = conn.cursor()
+
+    cur.execute("""
+    INSERT INTO hareket (urun,renk,adet,tip,tarih,kullanici)
+    VALUES (%s,%s,%s,'Giriş',%s,%s)
+    """, (
+        request.form['urun'],
+        request.form['renk'],
+        request.form['adet'],
+        datetime.now().strftime("%Y-%m-%d %H:%M"),
+        session.get("user")
+    ))
+
+    conn.commit()
+    return redirect("/stok")
+
+# STOK ÇIKIŞ
+@app.route('/stok_cikis', methods=['POST'])
+def stok_cikis():
+    conn = get_conn()
+    cur = conn.cursor()
+
+    cur.execute("""
+    INSERT INTO hareket (urun,adet,tip,tarih,kullanici)
+    VALUES (%s,%s,'Çıkış',%s,%s)
+    """, (
+        request.form['urun'],
+        request.form['adet'],
+        datetime.now().strftime("%Y-%m-%d %H:%M"),
+        session.get("user")
+    ))
+
+    conn.commit()
     return redirect("/stok")
 
 # SAYIM
