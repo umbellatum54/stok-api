@@ -2,27 +2,14 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Stok Giriş - üretimden gelen</title>
+<title>Stok Giriş</title>
 
 <style>
 body{font-family:Arial;background:#eef1f5;padding:20px;}
-
 table{width:100%;background:white;border-collapse:collapse;}
 th,td{padding:10px;border-bottom:1px solid #eee;}
-
-select,input{
-width:100%;
-padding:8px;
-}
-
-button{
-padding:12px 20px;
-background:#27ae60;
-color:white;
-border:none;
-border-radius:5px;
-cursor:pointer;
-}
+select,input{width:100%;padding:8px;}
+button{padding:12px 20px;background:#27ae60;color:white;border:none;border-radius:5px;}
 </style>
 </head>
 
@@ -33,7 +20,6 @@ cursor:pointer;
 <form method="POST" action="/stok-toplu-giris">
 
 <table>
-
 <tr>
 <th>Ürün</th>
 <th>Renk</th>
@@ -45,16 +31,18 @@ cursor:pointer;
 
 <td>
 <select name="urun{{i}}" onchange="renkGetir({{i}})">
-<option value="">Ürün seç</option>
-{% for urun in urun_map.keys() %}
+<option value="">Seç</option>
+
+{% for urun in urun_map %}
 <option value="{{urun}}">{{urun}}</option>
 {% endfor %}
+
 </select>
 </td>
 
 <td>
 <select name="renk{{i}}" id="renk{{i}}">
-<option>Renk seç</option>
+<option value="">Seç</option>
 </select>
 </td>
 
@@ -72,27 +60,24 @@ cursor:pointer;
 
 </form>
 
-<!-- 🔥 JS -->
 <script>
-
-const urunMap = {{ urun_map | tojson }};
+var urunMap = {{ urun_map | tojson | safe }};
 
 function renkGetir(i){
-    let urun = document.getElementsByName("urun"+i)[0].value;
-    let renkSelect = document.getElementById("renk"+i);
+    var urun = document.getElementsByName("urun"+i)[0].value;
+    var renkSelect = document.getElementById("renk"+i);
 
-    renkSelect.innerHTML = "";
+    renkSelect.innerHTML = "<option value=''>Seç</option>";
 
     if(urunMap[urun]){
         urunMap[urun].forEach(function(r){
-            let opt = document.createElement("option");
+            var opt = document.createElement("option");
             opt.value = r;
             opt.text = r;
             renkSelect.appendChild(opt);
         });
     }
 }
-
 </script>
 
 </body>
