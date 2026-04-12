@@ -1,23 +1,157 @@
-{% extends "layout.html" %}
-{% block content %}
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Depo - Stok</title>
 
-<h2>Stok Paneli</h2>
+<style>
+body{
+    margin:0;
+    font-family: Arial;
+    background:#f4f6f9;
+}
 
-<p>Stok Kart Sayısı: {{ stok_sayisi }}</p>
-<p>Depo Sayısı: {{ depo_sayisi }}</p>
+.sidebar{
+    width:230px;
+    height:100vh;
+    background:#0d1b2a;
+    position:fixed;
+    color:white;
+    padding:20px;
+}
 
-<h3>Son İşlemler</h3>
-<table border="1">
-<tr><th>Ürün</th><th>Adet</th><th>Tarih</th></tr>
+.sidebar h2{
+    margin-bottom:30px;
+}
 
-{% for l in logs %}
-<tr>
-<td>{{ l[1] }}</td>
-<td>{{ l[2] }}</td>
-<td>{{ l[3] }}</td>
-</tr>
-{% endfor %}
+.sidebar a{
+    display:block;
+    color:white;
+    text-decoration:none;
+    margin:10px 0;
+}
 
-</table>
+.main{
+    margin-left:250px;
+    padding:20px;
+}
 
-{% endblock %}
+.cards{
+    display:flex;
+    gap:20px;
+}
+
+.card{
+    flex:1;
+    background:white;
+    padding:20px;
+    border-radius:8px;
+    box-shadow:0 2px 5px rgba(0,0,0,0.1);
+}
+
+.buttons{
+    margin:20px 0;
+}
+
+.btn{
+    padding:10px 15px;
+    border:none;
+    border-radius:5px;
+    color:white;
+    cursor:pointer;
+    margin-right:10px;
+}
+
+.green{background:#2ecc71;}
+.red{background:#e74c3c;}
+.orange{background:#f39c12;}
+
+table{
+    width:100%;
+    background:white;
+    margin-top:20px;
+    border-collapse:collapse;
+}
+
+th, td{
+    padding:10px;
+    border-bottom:1px solid #ddd;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="sidebar">
+    <h2>Umbellatum</h2>
+
+    <a href="#">Dashboard</a>
+
+    <b>Online Pazaryeri</b>
+    <a>Trendyol</a>
+    <a>Hepsiburada</a>
+    <a>Pazarama</a>
+    <a>N11</a>
+    <a>Amazon</a>
+    <a>Web Sitem</a>
+
+    <hr>
+
+    <a href="/stok">Depo - Stok</a>
+    <a>İnsan Kaynakları</a>
+    <a>Nakit Yönetimi</a>
+    <a>Tedarikçiler</a>
+    <a>Ayarlar</a>
+</div>
+
+<div class="main">
+
+    <h2>Depo - Stok</h2>
+
+    <div class="buttons">
+        <button class="btn green">Ürün Kartı</button>
+        <button class="btn green">Stok Giriş</button>
+        <button class="btn red">Stok Çıkış</button>
+        <button class="btn orange">Stok Özeti</button>
+    </div>
+
+    <div class="cards">
+        <div class="card">
+            <h3>Stok Kart Sayısı</h3>
+            <h2>{{ stok_sayisi }}</h2>
+        </div>
+
+        <div class="card">
+            <h3>Depo Sayısı</h3>
+            <h2>{{ depo_sayisi }}</h2>
+        </div>
+
+        <div class="card">
+            <h3>Bugünkü İşlem</h3>
+            <h2>0</h2>
+        </div>
+    </div>
+
+    <h3>Son İşlemler</h3>
+
+    <table>
+        <tr>
+            <th>Ürün</th>
+            <th>Adet</th>
+            <th>Tarih</th>
+        </tr>
+
+        {% for l in logs %}
+        <tr>
+            <td>{{ l[1] }}</td>
+            <td>{{ l[2] }}</td>
+            <td>{{ l[3] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+</div>
+
+</body>
+</html>
