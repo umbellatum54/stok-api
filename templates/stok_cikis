@@ -1,1 +1,18 @@
-<h2>Stok Çıkış Sayfası</h2>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Stok Çıkış</title>
+</head>
+<body>
+
+<h2>Manuel Stok Çıkış</h2>
+
+<form method="POST" action="#">
+    <input type="text" placeholder="Ürün">
+    <input type="text" placeholder="Renk">
+    <input type="number" placeholder="Adet">
+    <button>Çıkış Yap</button>
+</form>
+
+</body>
+</html>
