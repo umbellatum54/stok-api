@@ -1,11 +1,23 @@
 {% extends "layout.html" %}
-
 {% block content %}
 
 <h2>Stok Özet</h2>
 
-<div class="card">
-    <p>Buraya Excel gibi stok tablosu gelecek</p>
-</div>
+<table border="1" width="100%">
+<tr>
+<th>Ürün</th>
+<th>Renk</th>
+<th>Stok</th>
+</tr>
+
+{% for s in stoklar %}
+<tr>
+<td>{{s[0]}}</td>
+<td>{{s[1]}}</td>
+<td>{{s[2]}}</td>
+</tr>
+{% endfor %}
+
+</table>
 
 {% endblock %}
