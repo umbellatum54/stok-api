@@ -118,9 +118,25 @@ def stok_cikis():
 # =========================
 # STOK ÖZET
 # =========================
-@stok_bp.route("/stok-ozet")
-def stok_ozet():
-    return render_template("stok_ozet.html")
+@stok_bp.route("/stok-cikis", methods=["GET", "POST"])
+def stok_cikis():
+
+    # TEST DATA (DB YOK)
+    urun_dict = {
+        "NO1": ["BEJ", "SİYAH", "GRİ"],
+        "NO3": ["BEYAZ", "SİYAH"]
+    }
+
+    if request.method == "POST":
+        urun = request.form.get("urun")
+        renk = request.form.get("renk")
+        adet = request.form.get("adet")
+
+        print("ÇIKIŞ:", urun, renk, adet)
+
+        return redirect("/stok")
+
+    return render_template("stok_cikis.html", urun_dict=urun_dict)
 
 
 # =========================
