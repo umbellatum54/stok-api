@@ -4,11 +4,50 @@
 
 <h2>Manuel Stok Çıkış</h2>
 
-<form>
-    <input type="text" placeholder="Ürün">
-    <input type="text" placeholder="Renk">
-    <input type="number" placeholder="Adet">
+<form method="POST" onsubmit="return onayla(this, 'Stoktan düşülsün mü?')">
+
+    <!-- ÜRÜN -->
+    <select name="urun" onchange="renkGetir(this)">
+        <option value="">Ürün seç</option>
+
+        {% for urun in urun_dict.keys() %}
+            <option value="{{ urun }}">{{ urun }}</option>
+        {% endfor %}
+    </select>
+
+    <!-- RENK -->
+    <select name="renk" id="renkSelect">
+        <option>Renk seç</option>
+    </select>
+
+    <!-- ADET -->
+    <input type="number" name="adet" placeholder="Adet" required>
+
     <button class="btn red">Çıkış Yap</button>
+
 </form>
+
+<!-- JS -->
+<script>
+
+const urunler = {{ urun_dict | tojson }};
+
+function renkGetir(select) {
+    const urun = select.value;
+    const renkSelect = document.getElementById("renkSelect");
+
+    renkSelect.innerHTML = "<option>Renk seç</option>";
+
+    if (urunler[urun]) {
+        urunler[urun].forEach(function(renk){
+            let opt = document.createElement("option");
+            opt.value = renk;
+            opt.innerText = renk;
+            renkSelect.appendChild(opt);
+        });
+    }
+}
+
+</script>
 
 {% endblock %}
