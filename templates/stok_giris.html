@@ -6,23 +6,54 @@
 
 <form>
 
-    {% for i in range(1,11) %}
-    <div style="margin-bottom:10px;">
+{% for i in range(1,11) %}
+<div style="margin-bottom:10px;">
 
-        <select name="urun">
-            <option value="">Ürün seç</option>
-            {% for u in urunler %}
-                <option value="{{ u[0] }}">{{ u[0] }}</option>
-            {% endfor %}
-        </select>
+    <!-- ÜRÜN -->
+    <select onchange="renkGetir(this, 'renk{{i}}')">
+        <option value="">Ürün seç</option>
 
-        <input type="text" name="renk" placeholder="Renk">
-        <input type="number" name="adet" placeholder="Adet">
+        {% for urun in urun_dict.keys() %}
+            <option value="{{ urun }}">{{ urun }}</option>
+        {% endfor %}
 
-    </div>
-    {% endfor %}
+    </select>
 
-    <button class="btn green">Kaydet</button>
+    <!-- RENK -->
+    <select id="renk{{i}}">
+        <option>Renk seç</option>
+    </select>
+
+    <input type="number" placeholder="Adet">
+
+</div>
+{% endfor %}
+
+<button class="btn green">Kaydet</button>
+
 </form>
+
+<!-- JS -->
+<script>
+
+const urunler = {{ urun_dict | tojson }};
+
+function renkGetir(select, targetId) {
+    const urun = select.value;
+    const renkSelect = document.getElementById(targetId);
+
+    renkSelect.innerHTML = "<option>Renk seç</option>";
+
+    if (urunler[urun]) {
+        urunler[urun].forEach(function(renk){
+            let opt = document.createElement("option");
+            opt.value = renk;
+            opt.innerText = renk;
+            renkSelect.appendChild(opt);
+        });
+    }
+}
+
+</script>
 
 {% endblock %}
