@@ -1,7 +1,6 @@
 from flask import Blueprint, render_template, request, redirect
 from datetime import datetime
-
-from db import get_conn  # artık zorunlu
+from db import get_conn
 
 stok_bp = Blueprint("stok", __name__, url_prefix="/depo-stok")
 
@@ -17,13 +16,12 @@ def stok():
 # =========================
 # ÜRÜNLER
 # =========================
-@stok_bp.route("/urunler", methods=["GET","POST"])
+@stok_bp.route("/urunler", methods=["GET", "POST"])
 def urunler():
 
     conn = get_conn()
     cur = conn.cursor()
 
-    # TABLO
     cur.execute("""
     CREATE TABLE IF NOT EXISTS urunler (
         id SERIAL PRIMARY KEY,
@@ -32,7 +30,6 @@ def urunler():
     )
     """)
 
-    # KAYDET
     if request.method == "POST":
         ad = request.form.get("ad")
         renk = request.form.get("renk")
@@ -46,7 +43,6 @@ def urunler():
 
         return redirect("/depo-stok/urunler")
 
-    # LİSTE
     cur.execute("SELECT id, ad, renk FROM urunler ORDER BY id DESC")
     urunler = cur.fetchall()
 
@@ -59,13 +55,12 @@ def urunler():
 # =========================
 # STOK GİRİŞ
 # =========================
-@stok_bp.route("/stok-giris", methods=["GET","POST"])
+@stok_bp.route("/stok-giris", methods=["GET", "POST"])
 def stok_giris():
 
     conn = get_conn()
     cur = conn.cursor()
 
-    # TABLO
     cur.execute("""
     CREATE TABLE IF NOT EXISTS hareket (
         id SERIAL PRIMARY KEY,
@@ -76,7 +71,6 @@ def stok_giris():
     )
     """)
 
-    # ÜRÜN DATA
     cur.execute("SELECT ad, renk FROM urunler")
     data = cur.fetchall()
 
@@ -84,22 +78,27 @@ def stok_giris():
     for ad, renk in data:
         urun_dict.setdefault(ad, []).append(renk)
 
-    # KAYDET
     if request.method == "POST":
-        print("POST GELDİ")  # debug
 
-        for i in range(1,6):
+        for i in range(1, 6):
+
             urun = request.form.get(f"urun{i}")
             renk = request.form.get(f"renk{i}")
             adet = request.form.get(f"adet{i}")
 
-            print(urun, renk, adet)  # debug
+            # 🔥 KRİTİK FIX (PATLAMAYI ENGELLER)
+            if not urun or not renk or not adet:
+                continue
 
-            if urun and renk and adet:
-                cur.execute("""
-                INSERT INTO hareket (urun, renk, adet, tarih)
-                VALUES (%s,%s,%s,%s)
-                """, (urun, renk, int(adet), datetime.now()))
+            try:
+                adet = int(adet)
+            except:
+                continue
+
+            cur.execute("""
+            INSERT INTO hareket (urun, renk, adet, tarih)
+            VALUES (%s,%s,%s,%s)
+            """, (urun, renk, adet, datetime.now()))
 
         conn.commit()
         return redirect("/depo-stok/stok-giris")
@@ -133,7 +132,7 @@ def stok_giris():
 # =========================
 # STOK ÇIKIŞ
 # =========================
-@stok_bp.route("/stok-cikis", methods=["GET","POST"])
+@stok_bp.route("/stok-cikis", methods=["GET", "POST"])
 def stok_cikis():
 
     conn = get_conn()
@@ -147,17 +146,24 @@ def stok_cikis():
         urun_dict.setdefault(ad, []).append(renk)
 
     if request.method == "POST":
+
         urun = request.form.get("urun")
         renk = request.form.get("renk")
         adet = request.form.get("adet")
 
         if urun and renk and adet:
+            try:
+                adet = int(adet)
+            except:
+                adet = 0
+
             cur.execute("""
             INSERT INTO hareket (urun, renk, adet, tarih)
             VALUES (%s,%s,%s,%s)
-            """, (urun, renk, -int(adet), datetime.now()))
+            """, (urun, renk, -adet, datetime.now()))
 
-        conn.commit()
+            conn.commit()
+
         return redirect("/depo-stok/stok-cikis")
 
     cur.close()
