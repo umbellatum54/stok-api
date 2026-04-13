@@ -1,34 +1,76 @@
-from flask import Blueprint, render_template, request, redirect, session
-from datetime import datetime
+from flask import Blueprint, render_template, request, redirect
+from db import get_conn
 
-stok_bp = Blueprint('stok', __name__)
+stok_bp = Blueprint("stok", __name__)
 
-
+# =========================
 # ANA SAYFA
-@stok_bp.route('/stok')
+# =========================
+@stok_bp.route("/stok")
 def stok():
     return render_template("stok.html")
 
 
-# ÜRÜN KARTLARI
-@stok_bp.route('/urunler')
+# =========================
+# ÜRÜN KARTLARI SAYFASI
+# =========================
+@stok_bp.route("/urunler", methods=["GET", "POST"])
 def urunler():
-    return render_template("urunler.html")
+    conn = get_conn()
+    cur = conn.cursor()
+
+    # TABLO YOKSA OLUŞTUR
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS urunler (
+        id SERIAL PRIMARY KEY,
+        ad TEXT,
+        renk TEXT
+    )
+    """)
+
+    # KAYDET
+    if request.method == "POST":
+        ad = request.form.get("ad")
+        renk = request.form.get("renk")
+
+        if ad and renk:
+            cur.execute(
+                "INSERT INTO urunler (ad, renk) VALUES (%s, %s)",
+                (ad, renk)
+            )
+            conn.commit()
+
+        return redirect("/urunler")
+
+    # LİSTELE
+    cur.execute("SELECT ad, renk FROM urunler ORDER BY id DESC")
+    urunler = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+    return render_template("urunler.html", urunler=urunler)
 
 
+# =========================
 # STOK GİRİŞ
-@stok_bp.route('/stok-giris')
+# =========================
+@stok_bp.route("/stok-giris")
 def stok_giris():
     return render_template("stok_giris.html")
 
 
+# =========================
 # STOK ÇIKIŞ
-@stok_bp.route('/stok-cikis')
+# =========================
+@stok_bp.route("/stok-cikis")
 def stok_cikis():
     return render_template("stok_cikis.html")
 
 
+# =========================
 # STOK ÖZET
-@stok_bp.route('/stok-ozet')
+# =========================
+@stok_bp.route("/stok-ozet")
 def stok_ozet():
     return render_template("stok_ozet.html")
