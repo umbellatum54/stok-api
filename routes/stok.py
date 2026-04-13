@@ -57,7 +57,16 @@ def urunler():
 # =========================
 @stok_bp.route("/stok-giris")
 def stok_giris():
-    return render_template("stok_giris.html")
+    conn = get_conn()
+    cur = conn.cursor()
+
+    cur.execute("SELECT DISTINCT ad FROM urunler ORDER BY ad")
+    urunler = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+    return render_template("stok_giris.html", urunler=urunler)
 
 
 # =========================
