@@ -1,59 +1,41 @@
 {% extends "layout.html" %}
-
 {% block content %}
 
-<h2>Stok Giriş - Üretimden</h2>
+<h2>Stok Giriş</h2>
 
-<form>
+<form method="POST" onsubmit="return confirm('Kaydedilsin mi?')">
 
-{% for i in range(1,11) %}
-<div style="margin-bottom:10px;">
-
-    <!-- ÜRÜN -->
-    <select onchange="renkGetir(this, 'renk{{i}}')">
-        <option value="">Ürün seç</option>
-
-        {% for urun in urun_dict.keys() %}
-            <option value="{{ urun }}">{{ urun }}</option>
-        {% endfor %}
-
-    </select>
-
-    <!-- RENK -->
-    <select id="renk{{i}}">
-        <option>Renk seç</option>
-    </select>
-
-    <input type="number" placeholder="Adet">
-
-</div>
+<select name="urun" onchange="renkGetir(this)">
+<option>Ürün seç</option>
+{% for u in urun_dict.keys() %}
+<option value="{{u}}">{{u}}</option>
 {% endfor %}
+</select>
+
+<select name="renk" id="renk">
+<option>Renk</option>
+</select>
+
+<input name="adet" type="number" placeholder="Adet">
 
 <button class="btn green">Kaydet</button>
 
 </form>
 
-<!-- JS -->
 <script>
+const data = {{ urun_dict | tojson }};
 
-const urunler = {{ urun_dict | tojson }};
+function renkGetir(el){
+    let r = document.getElementById("renk");
+    r.innerHTML="";
 
-function renkGetir(select, targetId) {
-    const urun = select.value;
-    const renkSelect = document.getElementById(targetId);
-
-    renkSelect.innerHTML = "<option>Renk seç</option>";
-
-    if (urunler[urun]) {
-        urunler[urun].forEach(function(renk){
-            let opt = document.createElement("option");
-            opt.value = renk;
-            opt.innerText = renk;
-            renkSelect.appendChild(opt);
-        });
-    }
+    data[el.value].forEach(x=>{
+        let o=document.createElement("option");
+        o.value=x;
+        o.text=x;
+        r.appendChild(o);
+    });
 }
-
 </script>
 
 {% endblock %}
