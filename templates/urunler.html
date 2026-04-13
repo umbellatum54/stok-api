@@ -6,12 +6,9 @@
 
 <div class="card">
     <form method="POST">
-
         <input name="ad" type="text" placeholder="Ürün adı" required>
         <input name="renk" type="text" placeholder="Renk" required>
-
         <button class="btn green">Kaydet</button>
-
     </form>
 </div>
 
@@ -22,12 +19,18 @@
         <tr>
             <th>Ürün</th>
             <th>Renk</th>
+            <th>İşlem</th>
         </tr>
 
         {% for u in urunler %}
         <tr>
-            <td>{{ u[0] }}</td>
             <td>{{ u[1] }}</td>
+            <td>{{ u[2] }}</td>
+            <td>
+                <a href="/urun-sil/{{ u[0] }}">
+                    <button style="background:red;color:white;">Sil</button>
+                </a>
+            </td>
         </tr>
         {% endfor %}
 
