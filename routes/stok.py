@@ -60,13 +60,23 @@ def stok_giris():
     conn = get_conn()
     cur = conn.cursor()
 
-    cur.execute("SELECT DISTINCT ad FROM urunler ORDER BY ad")
-    urunler = cur.fetchall()
+    # TÜM ÜRÜN + RENK
+    cur.execute("SELECT ad, renk FROM urunler ORDER BY ad")
+    data = cur.fetchall()
 
     cur.close()
     conn.close()
 
-    return render_template("stok_giris.html", urunler=urunler)
+    # PYTHON → DICT YAPISI
+    urun_dict = {}
+
+    for ad, renk in data:
+        if ad not in urun_dict:
+            urun_dict[ad] = []
+        if renk:
+            urun_dict[ad].append(renk)
+
+    return render_template("stok_giris.html", urun_dict=urun_dict)
 
 
 # =========================
