@@ -27,9 +27,9 @@
             <td>{{ u[1] }}</td>
             <td>{{ u[2] }}</td>
             <td>
-                <a href="/urun-sil/{{ u[0] }}">
-                    <button style="background:red;color:white;">Sil</button>
-                </a>
+                <a href="/urun-sil/{{ u[0] }}" onclick="return silOnay('Bu ürünü silmek istiyor musun?')">
+    <button style="background:red;color:white;">Kayıt Sil</button>
+            </a>
             </td>
         </tr>
         {% endfor %}
