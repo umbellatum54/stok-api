@@ -1,9 +1,74 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Panel</title>
+    <title>Stok Panel</title>
+    <style>
+        body { margin:0; font-family:Arial; display:flex; }
+
+        .sidebar {
+            width:220px;
+            background:#0f172a;
+            color:white;
+            height:100vh;
+            padding:20px;
+        }
+
+        .sidebar h2 { margin-bottom:20px; }
+
+        .sidebar a {
+            display:block;
+            color:white;
+            text-decoration:none;
+            margin:10px 0;
+        }
+
+        .content {
+            flex:1;
+            padding:20px;
+            background:#f1f5f9;
+        }
+
+        .btn {
+            padding:10px 15px;
+            border:none;
+            border-radius:6px;
+            color:white;
+            cursor:pointer;
+        }
+
+        .green { background:#22c55e; }
+        .red { background:#ef4444; }
+        .orange { background:#f59e0b; }
+    </style>
 </head>
+
 <body>
-{% block content %}{% endblock %}
+
+<div class="sidebar">
+    <h2>Umbellatum</h2>
+
+    <a href="/stok">Dashboard</a>
+
+    <b>Online Pazaryeri</b>
+    <a href="#">Trendyol</a>
+    <a href="#">Hepsiburada</a>
+    <a href="#">Pazarama</a>
+    <a href="#">N11</a>
+    <a href="#">Amazon</a>
+    <a href="#">Web Sitem</a>
+
+    <hr>
+
+    <a href="/stok">Depo - Stok</a>
+    <a href="#">İnsan Kaynakları</a>
+    <a href="#">Nakit Yönetimi</a>
+    <a href="#">Tedarikçiler</a>
+    <a href="#">Ayarlar</a>
+</div>
+
+<div class="content">
+    {% block content %}{% endblock %}
+</div>
+
 </body>
 </html>
