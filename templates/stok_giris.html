@@ -1,29 +1,26 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Stok Giriş</title>
-</head>
-<body>
+{% extends "layout.html" %}
 
-<h2>Stok Giriş Sayfası</h2>
+{% block content %}
+
+<h2>Stok Giriş - Üretimden</h2>
 
 <form method="POST" action="/stok-toplu-giris">
-    {% for i in range(1,11) %}
-        <div style="margin-bottom:10px;">
-            <select name="urun{{i}}">
-                <option value="">Ürün seç</option>
-                {% for u in urun_map %}
-                    <option value="{{u}}">{{u}}</option>
-                {% endfor %}
-            </select>
 
-            <input type="text" name="renk{{i}}" placeholder="Renk">
-            <input type="number" name="adet{{i}}" placeholder="Adet">
-        </div>
+    {% for i in range(1,11) %}
+    <div style="margin-bottom:10px;">
+        <select name="urun{{i}}">
+            <option value="">Ürün seç</option>
+            {% for u in urun_map %}
+                <option value="{{u}}">{{u}}</option>
+            {% endfor %}
+        </select>
+
+        <input type="text" name="renk{{i}}" placeholder="Renk">
+        <input type="number" name="adet{{i}}" placeholder="Adet">
+    </div>
     {% endfor %}
 
-    <button type="submit">Kaydet</button>
+    <button class="btn green">Kaydet</button>
 </form>
 
-</body>
-</html>
+{% endblock %}
