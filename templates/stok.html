@@ -1,181 +1,35 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>Depo - Stok</title>
+{% extends "layout.html" %}
 
-<style>
-body{margin:0;font-family:Arial;background:#eef1f5;}
-.sidebar{width:230px;height:100vh;background:#0d1b2a;position:fixed;color:white;padding:20px;}
-.sidebar a{display:block;color:white;text-decoration:none;margin:10px 0;}
-
-.main{margin-left:250px;padding:20px;}
-
-.box{background:white;padding:20px;border-radius:10px;margin-bottom:20px;}
-
-.buttons{
-display:flex;
-gap:10px;
-margin-bottom:20px;
-}
-
-.btn{
-padding:15px 20px;
-border:none;
-border-radius:8px;
-color:white;
-cursor:pointer;
-font-weight:bold;
-}
-
-.green{background:#27ae60;}
-.red{background:#e74c3c;}
-.purple{background:#6c5ce7;}
-.orange{background:#f39c12;}
-
-.cards{
-display:flex;
-gap:20px;
-}
-
-.card{
-flex:1;
-background:white;
-padding:20px;
-border-radius:10px;
-display:flex;
-align-items:center;
-justify-content:space-between;
-}
-
-.section{
-display:flex;
-gap:20px;
-}
-
-.table-box{
-flex:1;
-background:white;
-border-radius:10px;
-padding:10px;
-}
-
-table{width:100%;border-collapse:collapse;}
-th,td{padding:8px;border-bottom:1px solid #eee;}
-</style>
-</head>
-
-<body>
-
-<div class="sidebar">
-<h2>Umbellatum</h2>
-
-<a href="/">Dashboard</a>
-
-<b>Online Pazaryeri</b>
-<a>Trendyol</a>
-<a>Hepsiburada</a>
-<a>Pazarama</a>
-<a>N11</a>
-<a>Amazon</a>
-<a>Web Sitem</a>
-
-<hr>
-
-<a href="/stok"><b>Depo - Stok</b></a>
-<a href="/urunler">Ürün Kartları</a>
-</div>
-
-<div class="main">
+{% block content %}
 
 <h2>Depo - Stok</h2>
 
-<!-- 🔥 BUTONLAR -->
-<div class="box buttons">
-
-<a href="/urunler"><button class="btn green">Ürün Tanımla</button></a>
-<a href="/stok-giris"><button class="btn green">Stok Giriş - Üretimden </button></a>
-<a href="/stok-cikis"><button class="btn red">Manuel Stok Çıkış</button></a>
-<a href="/stok-ozet"><button class="btn orange">Stok Özeti</button></a>
-
-</div>
-
-<!-- 🔥 KARTLAR -->
-<div class="cards">
-
-<div class="card">
-<div>STOK KART SAYISI</div>
-<div><b>{{stok_sayisi}}</b></div>
+<div style="margin-bottom:20px;">
+    <a href="/urunler"><button class="btn green">Ürün Kartı</button></a>
+    <a href="/stok-giris"><button class="btn green">Stok Giriş</button></a>
+    <a href="/stok-cikis"><button class="btn red">Stok Çıkış</button></a>
+    <a href="/stok-ozet"><button class="btn orange">Stok Özet</button></a>
 </div>
 
 <div class="card">
-<div>DEPO SAYISI</div>
-<div><b>{{depo_sayisi}}</b></div>
+    <h3>Stok Kart Sayısı</h3>
+    <p>0</p>
 </div>
 
 <div class="card">
-<div>BUGÜNKÜ İŞLEM</div>
-<div><b>0</b></div>
+    <h3>Bugünkü İşlem</h3>
+    <p>0</p>
 </div>
 
+<div class="card">
+    <h3>Son İşlemler</h3>
+    <table border="1" width="100%">
+        <tr>
+            <th>Ürün</th>
+            <th>Adet</th>
+            <th>Tarih</th>
+        </tr>
+    </table>
 </div>
 
-<br>
-
-<!-- 🔥 ALT TABLOLAR -->
-<div class="section">
-
-<div class="table-box">
-<h4>Eksiye Düşmüş Stoklar</h4>
-<table>
-<tr><th>Stok</th><th>Depo</th></tr>
-</table>
-</div>
-
-<div class="table-box">
-<h4>Stokta Kalmayan</h4>
-<table>
-<tr><th>Stok</th><th>Depo</th></tr>
-</table>
-</div>
-
-</div>
-
-<br>
-
-<div class="section">
-
-<div class="table-box">
-<h4>Son İşlemler</h4>
-<table>
-
-<tr>
-<th>Ürün</th>
-<th>Adet</th>
-<th>Tarih</th>
-</tr>
-
-{% for l in logs %}
-<tr>
-<td>{{l[1]}}</td>
-<td>{{l[3]}}</td>
-<td>{{l[5]}}</td>
-</tr>
-{% endfor %}
-
-</table>
-</div>
-
-<div class="table-box">
-<h4>En Çok Kullanılan</h4>
-<table>
-<tr><th>Ürün</th><th>Adet</th></tr>
-</table>
-</div>
-
-</div>
-
-</div>
-
-</body>
-</html>
+{% endblock %}
