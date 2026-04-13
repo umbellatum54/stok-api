@@ -43,7 +43,7 @@ def urunler():
         return redirect("/urunler")
 
     # LİSTELE
-    cur.execute("SELECT ad, renk FROM urunler ORDER BY id DESC")
+    cur.execute("SELECT id, ad, renk FROM urunler ORDER BY id DESC")
     urunler = cur.fetchall()
 
     cur.close()
