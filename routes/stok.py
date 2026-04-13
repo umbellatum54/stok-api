@@ -82,9 +82,37 @@ def stok_giris():
 # =========================
 # STOK ÇIKIŞ
 # =========================
-@stok_bp.route("/stok-cikis")
+@stok_bp.route("/stok-cikis", methods=["GET", "POST"])
 def stok_cikis():
-    return render_template("stok_cikis.html")
+    conn = get_conn()
+    cur = conn.cursor()
+
+    # ÜRÜN + RENK çek
+    cur.execute("SELECT ad, renk FROM urunler ORDER BY ad")
+    data = cur.fetchall()
+
+    # ürün → renk map
+    urun_dict = {}
+    for ad, renk in data:
+        if ad not in urun_dict:
+            urun_dict[ad] = []
+        if renk:
+            urun_dict[ad].append(renk)
+
+    # POST (şimdilik sadece test)
+    if request.method == "POST":
+        urun = request.form.get("urun")
+        renk = request.form.get("renk")
+        adet = request.form.get("adet")
+
+        print("ÇIKIŞ:", urun, renk, adet)
+
+        return redirect("/stok")
+
+    cur.close()
+    conn.close()
+
+    return render_template("stok_cikis.html", urun_dict=urun_dict)
 
 
 # =========================
