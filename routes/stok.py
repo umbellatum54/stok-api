@@ -1,7 +1,6 @@
-from flask import Blueprint, render_template, request, redirect, session
+from flask import Blueprint, render_template, request, redirect
 from datetime import datetime
 
-# DB opsiyonel (çökmesin diye try)
 try:
     from db import get_conn
     DB_VAR = True
@@ -57,11 +56,7 @@ def urunler():
         conn.close()
 
     else:
-        # DB yoksa test veri
-        urunler = [
-            (1, "NO1", "BEJ"),
-            (2, "NO1", "SİYAH")
-        ]
+        urunler = [(1,"NO1","BEJ")]
 
     return render_template("urunler.html", urunler=urunler)
 
@@ -88,33 +83,51 @@ def urun_sil(id):
 # =========================
 # STOK GİRİŞ
 # =========================
-@stok_bp.route("/stok-giris")
+@stok_bp.route("/stok-giris", methods=["GET", "POST"])
 def stok_giris():
 
     if DB_VAR:
         conn = get_conn()
         cur = conn.cursor()
 
-        cur.execute("SELECT ad, renk FROM urunler ORDER BY ad")
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS hareket (
+            id SERIAL PRIMARY KEY,
+            urun TEXT,
+            renk TEXT,
+            adet INT,
+            tarih TIMESTAMP
+        )
+        """)
+
+        cur.execute("SELECT ad, renk FROM urunler")
         data = cur.fetchall()
 
-        cur.close()
-        conn.close()
-
         urun_dict = {}
-
         for ad, renk in data:
             if ad not in urun_dict:
                 urun_dict[ad] = []
             if renk:
                 urun_dict[ad].append(renk)
 
+        if request.method == "POST":
+            urun = request.form.get("urun")
+            renk = request.form.get("renk")
+            adet = int(request.form.get("adet"))
+
+            cur.execute("""
+            INSERT INTO hareket (urun, renk, adet, tarih)
+            VALUES (%s,%s,%s,%s)
+            """, (urun, renk, adet, datetime.now()))
+
+            conn.commit()
+            return redirect("/stok")
+
+        cur.close()
+        conn.close()
+
     else:
-        # test veri
-        urun_dict = {
-            "NO1": ["BEJ", "SİYAH", "GRİ"],
-            "NO3": ["BEYAZ", "SİYAH"]
-        }
+        urun_dict = {"NO1":["BEJ","SİYAH"]}
 
     return render_template("stok_giris.html", urun_dict=urun_dict)
 
@@ -129,34 +142,34 @@ def stok_cikis():
         conn = get_conn()
         cur = conn.cursor()
 
-        cur.execute("SELECT ad, renk FROM urunler ORDER BY ad")
+        cur.execute("SELECT ad, renk FROM urunler")
         data = cur.fetchall()
 
-        cur.close()
-        conn.close()
-
         urun_dict = {}
-
         for ad, renk in data:
             if ad not in urun_dict:
                 urun_dict[ad] = []
             if renk:
                 urun_dict[ad].append(renk)
 
+        if request.method == "POST":
+            urun = request.form.get("urun")
+            renk = request.form.get("renk")
+            adet = int(request.form.get("adet"))
+
+            cur.execute("""
+            INSERT INTO hareket (urun, renk, adet, tarih)
+            VALUES (%s,%s,%s,%s)
+            """, (urun, renk, -adet, datetime.now()))
+
+            conn.commit()
+            return redirect("/stok")
+
+        cur.close()
+        conn.close()
+
     else:
-        urun_dict = {
-            "NO1": ["BEJ", "SİYAH", "GRİ"],
-            "NO3": ["BEYAZ", "SİYAH"]
-        }
-
-    if request.method == "POST":
-        urun = request.form.get("urun")
-        renk = request.form.get("renk")
-        adet = request.form.get("adet")
-
-        print("ÇIKIŞ:", urun, renk, adet)
-
-        return redirect("/stok")
+        urun_dict = {"NO1":["BEJ","SİYAH"]}
 
     return render_template("stok_cikis.html", urun_dict=urun_dict)
 
@@ -166,4 +179,24 @@ def stok_cikis():
 # =========================
 @stok_bp.route("/stok-ozet")
 def stok_ozet():
-    return render_template("stok_ozet.html")
+
+    if DB_VAR:
+        conn = get_conn()
+        cur = conn.cursor()
+
+        cur.execute("""
+        SELECT urun, renk, SUM(adet) 
+        FROM hareket
+        GROUP BY urun, renk
+        ORDER BY urun
+        """)
+
+        stoklar = cur.fetchall()
+
+        cur.close()
+        conn.close()
+
+    else:
+        stoklar = [("NO1","BEJ",10)]
+
+    return render_template("stok_ozet.html", stoklar=stoklar)
