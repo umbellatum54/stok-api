@@ -1,23 +1,74 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<h2>Stok Özet</h2>
+<h2>📊 Stok Durumu (Excel Görünüm)</h2>
 
-<table border="1" width="100%">
+<div style="margin-bottom:15px;">
+    <input type="text" id="ara" placeholder="Ürün ara..." onkeyup="filtre()">
+</div>
+
+<table id="stokTablo" style="width:100%; border-collapse:collapse; background:white;">
+<thead style="background:#2c3e50; color:white;">
 <tr>
-<th>Ürün</th>
+<th style="padding:10px;">Ürün</th>
 <th>Renk</th>
 <th>Stok</th>
 </tr>
+</thead>
+
+<tbody>
 
 {% for s in stoklar %}
 <tr>
 <td>{{s[0]}}</td>
 <td>{{s[1]}}</td>
-<td>{{s[2]}}</td>
+
+<td 
+{% if s[2] < 0 %}
+style="color:red; font-weight:bold;"
+{% elif s[2] == 0 %}
+style="color:orange;"
+{% else %}
+style="color:green;"
+{% endif %}
+>
+{{s[2]}}
+</td>
+
 </tr>
 {% endfor %}
 
+</tbody>
 </table>
+
+<br>
+
+<button onclick="excelIndir()" class="btn green">📥 Excel İndir</button>
+
+<script>
+
+// 🔍 filtre
+function filtre(){
+    let input = document.getElementById("ara").value.toLowerCase();
+    let rows = document.querySelectorAll("#stokTablo tbody tr");
+
+    rows.forEach(r=>{
+        let text = r.innerText.toLowerCase();
+        r.style.display = text.includes(input) ? "" : "none";
+    });
+}
+
+
+// 📥 excel export
+function excelIndir(){
+    let table = document.getElementById("stokTablo").outerHTML;
+    let url = 'data:application/vnd.ms-excel,' + encodeURIComponent(table);
+    let a = document.createElement("a");
+    a.href = url;
+    a.download = "stok.xls";
+    a.click();
+}
+
+</script>
 
 {% endblock %}
