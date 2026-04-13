@@ -5,16 +5,33 @@
 <h2>Ürün Kartları</h2>
 
 <div class="card">
-    <form>
-        <input type="text" placeholder="Ürün adı">
-        <input type="text" placeholder="Renk">
+    <form method="POST">
+
+        <input name="ad" type="text" placeholder="Ürün adı" required>
+        <input name="renk" type="text" placeholder="Renk" required>
+
         <button class="btn green">Kaydet</button>
+
     </form>
 </div>
 
 <div class="card">
     <h3>Ürün Listesi</h3>
-    <p>Henüz ürün yok</p>
+
+    <table border="1" width="100%">
+        <tr>
+            <th>Ürün</th>
+            <th>Renk</th>
+        </tr>
+
+        {% for u in urunler %}
+        <tr>
+            <td>{{ u[0] }}</td>
+            <td>{{ u[1] }}</td>
+        </tr>
+        {% endfor %}
+
+    </table>
 </div>
 
 {% endblock %}
