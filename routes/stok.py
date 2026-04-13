@@ -1,7 +1,15 @@
-from flask import Blueprint, render_template, request, redirect
-from db import get_conn
+from flask import Blueprint, render_template, request, redirect, session
+from datetime import datetime
+
+# DB opsiyonel (çökmesin diye try)
+try:
+    from db import get_conn
+    DB_VAR = True
+except:
+    DB_VAR = False
 
 stok_bp = Blueprint("stok", __name__)
+
 
 # =========================
 # ANA SAYFA
@@ -12,44 +20,69 @@ def stok():
 
 
 # =========================
-# ÜRÜN KARTLARI SAYFASI
+# ÜRÜN KARTLARI
 # =========================
 @stok_bp.route("/urunler", methods=["GET", "POST"])
 def urunler():
-    conn = get_conn()
-    cur = conn.cursor()
 
-    # TABLO YOKSA OLUŞTUR
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS urunler (
-        id SERIAL PRIMARY KEY,
-        ad TEXT,
-        renk TEXT
-    )
-    """)
+    if DB_VAR:
+        conn = get_conn()
+        cur = conn.cursor()
 
-    # KAYDET
-    if request.method == "POST":
-        ad = request.form.get("ad")
-        renk = request.form.get("renk")
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS urunler (
+            id SERIAL PRIMARY KEY,
+            ad TEXT,
+            renk TEXT
+        )
+        """)
 
-        if ad and renk:
-            cur.execute(
-                "INSERT INTO urunler (ad, renk) VALUES (%s, %s)",
-                (ad, renk)
-            )
-            conn.commit()
+        if request.method == "POST":
+            ad = request.form.get("ad")
+            renk = request.form.get("renk")
 
-        return redirect("/urunler")
+            if ad and renk:
+                cur.execute(
+                    "INSERT INTO urunler (ad, renk) VALUES (%s,%s)",
+                    (ad, renk)
+                )
+                conn.commit()
 
-    # LİSTELE
-    cur.execute("SELECT id, ad, renk FROM urunler ORDER BY id DESC")
-    urunler = cur.fetchall()
+            return redirect("/urunler")
 
-    cur.close()
-    conn.close()
+        cur.execute("SELECT id, ad, renk FROM urunler ORDER BY id DESC")
+        urunler = cur.fetchall()
+
+        cur.close()
+        conn.close()
+
+    else:
+        # DB yoksa test veri
+        urunler = [
+            (1, "NO1", "BEJ"),
+            (2, "NO1", "SİYAH")
+        ]
 
     return render_template("urunler.html", urunler=urunler)
+
+
+# =========================
+# ÜRÜN SİL
+# =========================
+@stok_bp.route("/urun-sil/<int:id>")
+def urun_sil(id):
+
+    if DB_VAR:
+        conn = get_conn()
+        cur = conn.cursor()
+
+        cur.execute("DELETE FROM urunler WHERE id=%s", (id,))
+        conn.commit()
+
+        cur.close()
+        conn.close()
+
+    return redirect("/urunler")
 
 
 # =========================
@@ -57,24 +90,31 @@ def urunler():
 # =========================
 @stok_bp.route("/stok-giris")
 def stok_giris():
-    conn = get_conn()
-    cur = conn.cursor()
 
-    # TÜM ÜRÜN + RENK
-    cur.execute("SELECT ad, renk FROM urunler ORDER BY ad")
-    data = cur.fetchall()
+    if DB_VAR:
+        conn = get_conn()
+        cur = conn.cursor()
 
-    cur.close()
-    conn.close()
+        cur.execute("SELECT ad, renk FROM urunler ORDER BY ad")
+        data = cur.fetchall()
 
-    # PYTHON → DICT YAPISI
-    urun_dict = {}
+        cur.close()
+        conn.close()
 
-    for ad, renk in data:
-        if ad not in urun_dict:
-            urun_dict[ad] = []
-        if renk:
-            urun_dict[ad].append(renk)
+        urun_dict = {}
+
+        for ad, renk in data:
+            if ad not in urun_dict:
+                urun_dict[ad] = []
+            if renk:
+                urun_dict[ad].append(renk)
+
+    else:
+        # test veri
+        urun_dict = {
+            "NO1": ["BEJ", "SİYAH", "GRİ"],
+            "NO3": ["BEYAZ", "SİYAH"]
+        }
 
     return render_template("stok_giris.html", urun_dict=urun_dict)
 
@@ -84,22 +124,31 @@ def stok_giris():
 # =========================
 @stok_bp.route("/stok-cikis", methods=["GET", "POST"])
 def stok_cikis():
-    conn = get_conn()
-    cur = conn.cursor()
 
-    # ÜRÜN + RENK çek
-    cur.execute("SELECT ad, renk FROM urunler ORDER BY ad")
-    data = cur.fetchall()
+    if DB_VAR:
+        conn = get_conn()
+        cur = conn.cursor()
 
-    # ürün → renk map
-    urun_dict = {}
-    for ad, renk in data:
-        if ad not in urun_dict:
-            urun_dict[ad] = []
-        if renk:
-            urun_dict[ad].append(renk)
+        cur.execute("SELECT ad, renk FROM urunler ORDER BY ad")
+        data = cur.fetchall()
 
-    # POST (şimdilik sadece test)
+        cur.close()
+        conn.close()
+
+        urun_dict = {}
+
+        for ad, renk in data:
+            if ad not in urun_dict:
+                urun_dict[ad] = []
+            if renk:
+                urun_dict[ad].append(renk)
+
+    else:
+        urun_dict = {
+            "NO1": ["BEJ", "SİYAH", "GRİ"],
+            "NO3": ["BEYAZ", "SİYAH"]
+        }
+
     if request.method == "POST":
         urun = request.form.get("urun")
         renk = request.form.get("renk")
@@ -108,9 +157,6 @@ def stok_cikis():
         print("ÇIKIŞ:", urun, renk, adet)
 
         return redirect("/stok")
-
-    cur.close()
-    conn.close()
 
     return render_template("stok_cikis.html", urun_dict=urun_dict)
 
@@ -118,39 +164,6 @@ def stok_cikis():
 # =========================
 # STOK ÖZET
 # =========================
-@stok_bp.route("/stok-cikis", methods=["GET", "POST"])
-def stok_cikis():
-
-    # TEST DATA (DB YOK)
-    urun_dict = {
-        "NO1": ["BEJ", "SİYAH", "GRİ"],
-        "NO3": ["BEYAZ", "SİYAH"]
-    }
-
-    if request.method == "POST":
-        urun = request.form.get("urun")
-        renk = request.form.get("renk")
-        adet = request.form.get("adet")
-
-        print("ÇIKIŞ:", urun, renk, adet)
-
-        return redirect("/stok")
-
-    return render_template("stok_cikis.html", urun_dict=urun_dict)
-
-
-# =========================
-# ÜRÜN SİL
-# =========================
-@stok_bp.route("/urun-sil/<int:id>")
-def urun_sil(id):
-    conn = get_conn()
-    cur = conn.cursor()
-
-    cur.execute("DELETE FROM urunler WHERE id=%s", (id,))
-    conn.commit()
-
-    cur.close()
-    conn.close()
-
-    return redirect("/urunler")
+@stok_bp.route("/stok-ozet")
+def stok_ozet():
+    return render_template("stok_ozet.html")
