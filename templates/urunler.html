@@ -5,7 +5,7 @@
 <h2>Ürün Kartları</h2>
 
 <div class="card">
-    <form method="POST">
+   <form method="POST" onsubmit="return onayla(this, 'Ürün kaydedilsin mi?')">
         <input name="ad" type="text" placeholder="Ürün adı" required>
         <input name="renk" type="text" placeholder="Renk" required>
         <button class="btn green">Kaydet</button>
