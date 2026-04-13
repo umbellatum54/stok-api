@@ -80,3 +80,20 @@
 
 </body>
 </html>
+
+#==============================
+# BUTONLARDA ONAY FORMU #
+#==============================
+<script>
+function onayla(form, mesaj) {
+    if(confirm(mesaj)){
+        alert("İşlem başarılı ✅");
+        return true;
+    }
+    return false;
+}
+
+function silOnay(mesaj) {
+    return confirm(mesaj);
+}
+</script>
