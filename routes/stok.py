@@ -10,78 +10,13 @@ except:
 stok_bp = Blueprint("stok", __name__)
 
 
-# =========================
-# ANA SAYFA
-# =========================
 @stok_bp.route("/stok")
 def stok():
     return render_template("stok.html")
 
 
 # =========================
-# ÜRÜN KARTLARI
-# =========================
-@stok_bp.route("/urunler", methods=["GET", "POST"])
-def urunler():
-
-    if DB_VAR:
-        conn = get_conn()
-        cur = conn.cursor()
-
-        cur.execute("""
-        CREATE TABLE IF NOT EXISTS urunler (
-            id SERIAL PRIMARY KEY,
-            ad TEXT,
-            renk TEXT
-        )
-        """)
-
-        if request.method == "POST":
-            ad = request.form.get("ad")
-            renk = request.form.get("renk")
-
-            if ad and renk:
-                cur.execute(
-                    "INSERT INTO urunler (ad, renk) VALUES (%s,%s)",
-                    (ad, renk)
-                )
-                conn.commit()
-
-            return redirect("/urunler")
-
-        cur.execute("SELECT id, ad, renk FROM urunler ORDER BY id DESC")
-        urunler = cur.fetchall()
-
-        cur.close()
-        conn.close()
-
-    else:
-        urunler = [(1,"NO1","BEJ")]
-
-    return render_template("urunler.html", urunler=urunler)
-
-
-# =========================
-# ÜRÜN SİL
-# =========================
-@stok_bp.route("/urun-sil/<int:id>")
-def urun_sil(id):
-
-    if DB_VAR:
-        conn = get_conn()
-        cur = conn.cursor()
-
-        cur.execute("DELETE FROM urunler WHERE id=%s", (id,))
-        conn.commit()
-
-        cur.close()
-        conn.close()
-
-    return redirect("/urunler")
-
-
-# =========================
-# STOK GİRİŞ
+# STOK GİRİŞ (FULL PRO)
 # =========================
 @stok_bp.route("/stok-giris", methods=["GET", "POST"])
 def stok_giris():
@@ -90,6 +25,7 @@ def stok_giris():
         conn = get_conn()
         cur = conn.cursor()
 
+        # tablo garanti
         cur.execute("""
         CREATE TABLE IF NOT EXISTS hareket (
             id SERIAL PRIMARY KEY,
@@ -100,6 +36,7 @@ def stok_giris():
         )
         """)
 
+        # ürün + renk çek
         cur.execute("SELECT ad, renk FROM urunler")
         data = cur.fetchall()
 
@@ -110,93 +47,50 @@ def stok_giris():
             if renk:
                 urun_dict[ad].append(renk)
 
+        # ===== POST =====
         if request.method == "POST":
-            urun = request.form.get("urun")
-            renk = request.form.get("renk")
-            adet = int(request.form.get("adet"))
 
-            cur.execute("""
-            INSERT INTO hareket (urun, renk, adet, tarih)
-            VALUES (%s,%s,%s,%s)
-            """, (urun, renk, adet, datetime.now()))
+            for i in range(1,6):
+                urun = request.form.get(f"urun{i}")
+                renk = request.form.get(f"renk{i}")
+                adet = request.form.get(f"adet{i}")
+
+                if urun and renk and adet:
+                    cur.execute("""
+                    INSERT INTO hareket (urun, renk, adet, tarih)
+                    VALUES (%s,%s,%s,%s)
+                    """, (urun, renk, int(adet), datetime.now()))
 
             conn.commit()
-            return redirect("/stok")
+            return redirect("/stok-giris")
 
-        cur.close()
-        conn.close()
+        # SON 5 KAYIT
+        cur.execute("""
+        SELECT urun, renk, adet, tarih 
+        FROM hareket 
+        ORDER BY id DESC LIMIT 5
+        """)
+        son = cur.fetchall()
 
-    else:
-        urun_dict = {"NO1":["BEJ","SİYAH"]}
-
-    return render_template("stok_giris.html", urun_dict=urun_dict)
-
-
-# =========================
-# STOK ÇIKIŞ
-# =========================
-@stok_bp.route("/stok-cikis", methods=["GET", "POST"])
-def stok_cikis():
-
-    if DB_VAR:
-        conn = get_conn()
-        cur = conn.cursor()
-
-        cur.execute("SELECT ad, renk FROM urunler")
-        data = cur.fetchall()
-
-        urun_dict = {}
-        for ad, renk in data:
-            if ad not in urun_dict:
-                urun_dict[ad] = []
-            if renk:
-                urun_dict[ad].append(renk)
-
-        if request.method == "POST":
-            urun = request.form.get("urun")
-            renk = request.form.get("renk")
-            adet = int(request.form.get("adet"))
-
-            cur.execute("""
-            INSERT INTO hareket (urun, renk, adet, tarih)
-            VALUES (%s,%s,%s,%s)
-            """, (urun, renk, -adet, datetime.now()))
-
-            conn.commit()
-            return redirect("/stok")
-
-        cur.close()
-        conn.close()
-
-    else:
-        urun_dict = {"NO1":["BEJ","SİYAH"]}
-
-    return render_template("stok_cikis.html", urun_dict=urun_dict)
-
-
-# =========================
-# STOK ÖZET
-# =========================
-@stok_bp.route("/stok-ozet")
-def stok_ozet():
-
-    if DB_VAR:
-        conn = get_conn()
-        cur = conn.cursor()
-
+        # GÜNCEL STOK
         cur.execute("""
         SELECT urun, renk, SUM(adet) 
         FROM hareket
         GROUP BY urun, renk
-        ORDER BY urun
         """)
-
         stoklar = cur.fetchall()
 
         cur.close()
         conn.close()
 
     else:
-        stoklar = [("NO1","BEJ",10)]
+        urun_dict = {"NO1":["BEJ","SİYAH"]}
+        son = []
+        stoklar = []
 
-    return render_template("stok_ozet.html", stoklar=stoklar)
+    return render_template(
+        "stok_giris.html",
+        urun_dict=urun_dict,
+        son=son,
+        stoklar=stoklar
+    )
