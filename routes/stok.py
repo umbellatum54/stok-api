@@ -74,3 +74,20 @@ def stok_cikis():
 @stok_bp.route("/stok-ozet")
 def stok_ozet():
     return render_template("stok_ozet.html")
+
+
+# =========================
+# ÜRÜN SİL
+# =========================
+@stok_bp.route("/urun-sil/<int:id>")
+def urun_sil(id):
+    conn = get_conn()
+    cur = conn.cursor()
+
+    cur.execute("DELETE FROM urunler WHERE id=%s", (id,))
+    conn.commit()
+
+    cur.close()
+    conn.close()
+
+    return redirect("/urunler")
