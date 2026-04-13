@@ -1,20 +1,21 @@
 from flask import Blueprint, render_template, request, redirect
 from datetime import datetime
 
+# DB opsiyonel (çökmesin diye)
 try:
     from db import get_conn
     DB_VAR = True
 except:
     DB_VAR = False
 
-# 🔥 ÖNEMLİ: URL PREFIX EKLENDİ
+# 🔥 TEK DOĞRU PREFIX
 stok_bp = Blueprint("stok", __name__, url_prefix="/depo-stok")
 
 
 # =========================
 # ANA SAYFA
 # =========================
-@stok_bp.route("/stok")
+@stok_bp.route("/")
 def stok():
     return render_template("stok.html")
 
@@ -29,6 +30,7 @@ def urunler():
         conn = get_conn()
         cur = conn.cursor()
 
+        # tablo garanti
         cur.execute("""
         CREATE TABLE IF NOT EXISTS urunler (
             id SERIAL PRIMARY KEY,
@@ -37,6 +39,7 @@ def urunler():
         )
         """)
 
+        # kayıt
         if request.method == "POST":
             ad = request.form.get("ad")
             renk = request.form.get("renk")
@@ -50,6 +53,7 @@ def urunler():
 
             return redirect("/depo-stok/urunler")
 
+        # liste
         cur.execute("SELECT id, ad, renk FROM urunler ORDER BY id DESC")
         urunler = cur.fetchall()
 
@@ -57,7 +61,7 @@ def urunler():
         conn.close()
 
     else:
-        urunler = [(1,"NO1","BEJ")]
+        urunler = [(1, "NO1", "BEJ")]
 
     return render_template("urunler.html", urunler=urunler)
 
@@ -91,6 +95,7 @@ def stok_giris():
         conn = get_conn()
         cur = conn.cursor()
 
+        # tablolar garanti
         cur.execute("""
         CREATE TABLE IF NOT EXISTS hareket (
             id SERIAL PRIMARY KEY,
@@ -101,19 +106,25 @@ def stok_giris():
         )
         """)
 
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS urunler (
+            id SERIAL PRIMARY KEY,
+            ad TEXT,
+            renk TEXT
+        )
+        """)
+
+        # ürün listesi
         cur.execute("SELECT ad, renk FROM urunler")
         data = cur.fetchall()
 
         urun_dict = {}
         for ad, renk in data:
-            if ad not in urun_dict:
-                urun_dict[ad] = []
-            if renk:
-                urun_dict[ad].append(renk)
+            urun_dict.setdefault(ad, []).append(renk)
 
+        # POST (toplu giriş)
         if request.method == "POST":
-
-            for i in range(1,6):
+            for i in range(1, 6):
                 urun = request.form.get(f"urun{i}")
                 renk = request.form.get(f"renk{i}")
                 adet = request.form.get(f"adet{i}")
@@ -127,6 +138,7 @@ def stok_giris():
             conn.commit()
             return redirect("/depo-stok/stok-giris")
 
+        # son kayıtlar
         cur.execute("""
         SELECT urun, renk, adet, tarih 
         FROM hareket 
@@ -134,8 +146,9 @@ def stok_giris():
         """)
         son = cur.fetchall()
 
+        # stok hesap
         cur.execute("""
-        SELECT urun, renk, SUM(adet) 
+        SELECT urun, renk, SUM(adet)
         FROM hareket
         GROUP BY urun, renk
         """)
@@ -145,7 +158,7 @@ def stok_giris():
         conn.close()
 
     else:
-        urun_dict = {"NO1":["BEJ","SİYAH"]}
+        urun_dict = {"NO1": ["BEJ", "SİYAH"]}
         son = []
         stoklar = []
 
@@ -172,13 +185,9 @@ def stok_cikis():
 
         urun_dict = {}
         for ad, renk in data:
-            if ad not in urun_dict:
-                urun_dict[ad] = []
-            if renk:
-                urun_dict[ad].append(renk)
+            urun_dict.setdefault(ad, []).append(renk)
 
         if request.method == "POST":
-
             urun = request.form.get("urun")
             renk = request.form.get("renk")
             adet = request.form.get("adet")
@@ -196,13 +205,13 @@ def stok_cikis():
         conn.close()
 
     else:
-        urun_dict = {"NO1":["BEJ","SİYAH"]}
+        urun_dict = {"NO1": ["BEJ", "SİYAH"]}
 
     return render_template("stok_cikis.html", urun_dict=urun_dict)
 
 
 # =========================
-# STOK ÖZET
+# STOK ÖZET (EXCEL)
 # =========================
 @stok_bp.route("/stok-ozet")
 def stok_ozet():
@@ -212,18 +221,17 @@ def stok_ozet():
         cur = conn.cursor()
 
         cur.execute("""
-        SELECT urun, renk, SUM(adet) 
+        SELECT urun, renk, SUM(adet)
         FROM hareket
         GROUP BY urun, renk
         ORDER BY urun
         """)
-
         stoklar = cur.fetchall()
 
         cur.close()
         conn.close()
 
     else:
-        stoklar = [("NO1","BEJ",10)]
+        stoklar = [("NO1", "BEJ", 10)]
 
     return render_template("stok_ozet.html", stoklar=stoklar)
